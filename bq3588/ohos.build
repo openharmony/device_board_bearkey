@@ -1,0 +1,19 @@
+{
+    "subsystem": "rockchip_products",
+
+    "parts": {
+        "rockchip_products": {
+            "module_list": [
+                "//device/board/bearkey/${device_name}:bq3588_group",
+                "//vendor/bearkey/${product_name}/bluetooth:libbt_vendor",
+                "//vendor/bearkey/${product_name}/bluetooth:BCM4362A2.hcd",
+                "//device/board/bearkey/${device_name}/camera/vdi_impl/v4l2:camera_board_vdi_impl"
+            ],
+            "test_list": [
+                "//kernel/linux/build/test:linuxkerneltest",
+                "//device/board/bearkey/${device_name}/camera/vdi_impl/v4l2:camera_board_test"
+            ],
+            "inner_kits": []
+        }
+    }
+}
