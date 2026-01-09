@@ -72,7 +72,6 @@ int32_t Rk3588DeviceReadReg(const struct DaiDevice *dai, uint32_t reg, uint32_t 
         return HDF_FAILURE;
     }
 
-    AUDIO_DEVICE_LOG_INFO("success");
     return HDF_SUCCESS;
 }
 
@@ -97,7 +96,6 @@ int32_t Rk3588DeviceWriteReg(const struct DaiDevice *dai, uint32_t reg, uint32_t
         return HDF_FAILURE;
     }
 
-    AUDIO_DEVICE_LOG_INFO("success");
     return HDF_SUCCESS;
 }
 
@@ -135,7 +133,7 @@ int32_t Rk3588DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *dai)
     }
 
     dai->devData->daiInitFlag = true;
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return HDF_SUCCESS;
 }
 
@@ -170,7 +168,7 @@ int RK3588SetI2sFomartVal(const struct AudioPcmHwParams *param)
             AUDIO_DEVICE_LOG_ERR("format error, format is 0x%x", param->format);
             return -1;
     }
-    AUDIO_DEVICE_LOG_INFO("sucess");
+
     return val;
 }
 
@@ -210,7 +208,7 @@ int32_t RK3588SetI2sChannels(struct rk3588_i2s_tdm_dev *i2sTdm, const struct Aud
                 break;
         }
     }
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return ret;
 }
 
@@ -238,7 +236,7 @@ int32_t ConfigInfoSetToReg(struct rk3588_i2s_tdm_dev *i2sTdm, const struct Audio
             I2S_RXCR_VDW_MASK | I2S_RXCR_CSR_MASK,
             fmt);
     }
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return HDF_SUCCESS;
 }
 
@@ -297,7 +295,6 @@ int32_t RK3588I2sTdmSetMclk(struct rk3588_i2s_tdm_dev *i2sTdm, const struct Audi
         return HDF_FAILURE;
     }
 
-    AUDIO_DEVICE_LOG_INFO("success");
     return HDF_SUCCESS;
 }
 
@@ -377,7 +374,7 @@ int32_t Rk3588DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
         AUDIO_DEVICE_LOG_ERR("RK3588I2sTdmSetMclk error");
         return HDF_FAILURE;
     }
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return HDF_SUCCESS;
 }
 
@@ -402,7 +399,7 @@ static int GetTriggeredFlag(int cmd)
         default:
             triggerFlag = false;
     }
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return triggerFlag;
 }
 
@@ -427,7 +424,7 @@ static int GetStreamType(int cmd)
         default:
             break;
     }
-    AUDIO_DEVICE_LOG_INFO("success");
+
     return streamType;
 }
 
@@ -445,7 +442,7 @@ static int32_t Rk3588TxAndRxStart(struct rk3588_i2s_tdm_dev *i2sTdm, enum AudioS
             AUDIO_DEVICE_LOG_ERR("clk_prepare_enable fail");
             return HDF_FAILURE;
         }
-        AUDIO_DEVICE_LOG_INFO("success");
+
         if (regmap_update_bits(i2sTdm->regmap, I2S_DMACR, I2S_DMACR_TDE_ENABLE, I2S_DMACR_TDE_ENABLE)) {
             AUDIO_DEVICE_LOG_ERR("regmap_update_bits fail");
             return HDF_FAILURE;
@@ -572,7 +569,6 @@ static int32_t Rk3588TxAndRxSetReg(struct rk3588_i2s_tdm_dev *i2sTdm,
         }
     }
 
-    AUDIO_DEVICE_LOG_INFO("success");
     return HDF_SUCCESS;
 }
 
@@ -597,6 +593,5 @@ int32_t Rk3588NormalTrigger(const struct AudioCard *card, int cmd, const struct 
         return HDF_FAILURE;
     }
 
-    AUDIO_DEVICE_LOG_INFO("success");
     return HDF_SUCCESS;
 }

@@ -190,14 +190,10 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
 #define NR_SUPPORTED_MCLK_LRCK_RATIOS 5
 /* codec private data */
 struct es8323_priv {
-	unsigned int sysclk;
-	unsigned int allowed_rates[NR_SUPPORTED_MCLK_LRCK_RATIOS];
-	struct clk *mclk;
-    u32 mclk_freq;
-    unsigned long actual_mclk_freq;
-	struct snd_pcm_hw_constraint_list sysclk_constraints;
-	struct snd_soc_component *component;
-	struct regmap *regmap;
+    struct regmap *regmap;
+    unsigned int headset_gpio;
+    unsigned int hp_det_irq;
+    bool hp_state;
 };
 
 extern struct es8323_priv *GetCodecDevice(void);
