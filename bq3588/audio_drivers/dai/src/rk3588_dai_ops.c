@@ -240,7 +240,42 @@ int32_t ConfigInfoSetToReg(struct rk3588_i2s_tdm_dev *i2sTdm, const struct Audio
     return HDF_SUCCESS;
 }
 
-// i2s_tdm->mclk_tx_freq ? i2s_tdm->mclk_rx_freq ?
+static int32_t SetI2sMclkFrequency(struct rk3588_i2s_tdm_dev *i2sTdm,
+                                   const struct AudioPcmHwParams *param,
+                                   unsigned int *mclkRate)
+{
+    int32_t ret = 0;
+
+    if (i2sTdm == NULL || param == NULL) {
+        AUDIO_DEVICE_LOG_ERR("input param is null.");
+        return HDF_FAILURE;
+    }
+
+    switch (param->streamType) {
+        case AUDIO_RENDER_STREAM:
+            ret = clk_set_rate(i2sTdm->mclk_tx, i2sTdm->mclk_tx_freq);
+            if (ret) {
+                AUDIO_DEVICE_LOG_ERR("clk_set_rate for TX ret = %d", ret);
+                return ret;
+            }
+            *mclkRate = clk_get_rate(i2sTdm->mclk_tx);
+            break;
+        case AUDIO_CAPTURE_STREAM:
+            ret = clk_set_rate(i2sTdm->mclk_rx, i2sTdm->mclk_rx_freq);
+            if (ret) {
+                AUDIO_DEVICE_LOG_ERR("clk_set_rate for RX ret = %d", ret);
+                return ret;
+            }
+            *mclkRate = clk_get_rate(i2sTdm->mclk_rx);
+            break;
+        default:
+            AUDIO_DEVICE_LOG_ERR("streamType [%d] is invalid.", param->streamType);
+            return HDF_FAILURE;
+    }
+
+    return HDF_SUCCESS;
+}
+
 int32_t RK3588I2sTdmSetMclk(struct rk3588_i2s_tdm_dev *i2sTdm, const struct AudioPcmHwParams *param)
 {
     int32_t ret = 0;
@@ -250,28 +285,11 @@ int32_t RK3588I2sTdmSetMclk(struct rk3588_i2s_tdm_dev *i2sTdm, const struct Audi
     unsigned int lrclkDiv = 0;
     int32_t fmt = 0;
     int32_t channels = 0;
-    if (i2sTdm == NULL || param == NULL) {
-        AUDIO_DEVICE_LOG_ERR("input param is null.");
-        return HDF_FAILURE;
-    }
 
-    if (param->streamType == AUDIO_RENDER_STREAM) {
-        ret = clk_set_rate(i2sTdm->mclk_tx, i2sTdm->mclk_tx_freq);
-        if (ret) {
-            AUDIO_DEVICE_LOG_ERR(" clk_set_rate ret = %d", ret);
-            return ret;
-        }
-        mclkRate = clk_get_rate(i2sTdm->mclk_tx);
-    } else if (param->streamType == AUDIO_CAPTURE_STREAM) {
-        ret = clk_set_rate(i2sTdm->mclk_rx, i2sTdm->mclk_rx_freq);
-        if (ret) {
-            AUDIO_DEVICE_LOG_ERR(" clk_set_rate ret = %d", ret);
-            return ret;
-        }
-        mclkRate = clk_get_rate(i2sTdm->mclk_rx);
-    } else {
-        AUDIO_DEVICE_LOG_ERR("streamType is invalid.");
-        return HDF_FAILURE;
+    ret = SetI2sMclkFrequency(i2sTdm, param, &mclkRate);
+    if (ret != HDF_SUCCESS) {
+        AUDIO_DEVICE_LOG_ERR("SetI2sMclkFrequency failed, ret = %d", ret);
+        return ret;
     }
 
     bclkRate = i2sTdm->bclk_fs * param->rate;

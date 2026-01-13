@@ -29,7 +29,7 @@
 
 #define HDF_LOG_TAG "es8323_codec_linux"
 
-static const struct regmap_config es8323_regmap_config = {
+static const struct regmap_config es8323RegmapConfig = {
     .reg_bits	= 8,
     .val_bits	= 8,
     .max_register	= ES8323_DACCONTROL30,
@@ -38,14 +38,14 @@ static const struct regmap_config es8323_regmap_config = {
     .use_single_write = true,
 };
 
-struct i2c_client *i2c_get_clientdata_by_name(const char *node_name)
+struct i2c_client *I2cGetClientDataByName(const char *nodeName)
 {
     struct device_node *node;
     struct i2c_client *client = NULL;
 
-    node = of_find_node_by_name(NULL, node_name);
+    node = of_find_node_by_name(NULL, nodeName);
     if (!node) {
-        pr_err("Cannot find node %s\n", node_name);
+        pr_err("Cannot find node %s\n", nodeName);
         return NULL;
     }
 
@@ -55,89 +55,93 @@ struct i2c_client *i2c_get_clientdata_by_name(const char *node_name)
     return client;
 }
 
-struct es8323_priv *GetCodecDevice(void)
+struct Es8323Priv *GetCodecDevice(void)
 {
-    struct i2c_client *client = i2c_get_clientdata_by_name("es8388");
-    if (!client)
+    struct i2c_client *client = I2cGetClientDataByName("es8388");
+    if (!client) {
         return NULL;
+    }
+
     return i2c_get_clientdata(client);
 }
 
-static irqreturn_t hp_det_irq_handler(int irq, void *dev_id)
+static irqreturn_t HpDetIrqHandler(int irq, void *devId)
 {
-    struct es8323_priv *es8323 = (struct es8323_priv *)dev_id;
+    struct Es8323Priv *es8323 = (struct Es8323Priv *)devId;
 
-    es8323->hp_state = gpio_get_value(es8323->headset_gpio);
+    es8323->hpState = gpio_get_value(es8323->headsetGpio);
 
     return IRQ_HANDLED;
 }
 
-static int hp_det_init(struct es8323_priv *es8323, struct device *dev)
+static int HpDetInit(struct Es8323Priv *es8323, struct device *dev)
 {
     int ret;
     struct device_node *np = dev->of_node;
 
-    es8323->headset_gpio = of_get_named_gpio(np, "headset_gpio", 0);
-    if (es8323->headset_gpio < 0) {
-        dev_err(dev, "Failed to get headset_gpio from DT\n");
+    es8323->headsetGpio = of_get_named_gpio(np, "headsetGpio", 0);
+    if (es8323->headsetGpio < 0) {
+        dev_err(dev, "Failed to get headsetGpio from DT\n");
         return -EINVAL;
     }
 
-    if (!gpio_is_valid(es8323->headset_gpio)) {
-        dev_err(dev, "Invalid headset_gpio: %d\n", es8323->headset_gpio);
+    if (!gpio_is_valid(es8323->headsetGpio)) {
+        dev_err(dev, "Invalid headsetGpio: %d\n", es8323->headsetGpio);
         return -EINVAL;
     }
 
-    ret = devm_gpio_request_one(dev, es8323->headset_gpio,
+    ret = devm_gpio_request_one(dev, es8323->headsetGpio,
                                  GPIOF_DIR_IN, "hp-det");
     if (ret) {
-        dev_err(dev, "Failed to request headset_gpio: %d\n", ret);
+        dev_err(dev, "Failed to request headsetGpio: %d\n", ret);
         return ret;
     }
 
-    es8323->hp_det_irq = gpio_to_irq(es8323->headset_gpio);
-    if (es8323->hp_det_irq < 0) {
-        dev_err(dev, "Failed to get hp-det IRQ\n");
-        return es8323->hp_det_irq;
+    es8323->hpDetIrq = gpio_to_irq(es8323->headsetGpio);
+    if (es8323->hpDetIrq < 0) {
+        dev_err(dev, "Failed to get hpDetIrq IRQ\n");
+        return es8323->hpDetIrq;
     }
 
-    ret = devm_request_irq(dev, es8323->hp_det_irq,
-                           hp_det_irq_handler,
+    ret = devm_request_irq(dev, es8323->hpDetIrq,
+                           HpDetIrqHandler,
                            IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-                           "hp-det", es8323);
+                           "hpDetIrq", es8323);
     if (ret) {
-        dev_err(dev, "Failed to request hp-det IRQ: %d\n", ret);
+        dev_err(dev, "Failed to request hpDetIrq IRQ: %d\n", ret);
         return ret;
     }
 
-    es8323->hp_state = gpio_get_value(es8323->headset_gpio);
+    es8323->hpState = gpio_get_value(es8323->headsetGpio);
 
     return 0;
 }
 
-static int es8323_i2c_probe(struct i2c_client *i2c)
+static int Es8323I2cProbe(struct i2c_client *i2c)
 {
     int ret = -1;
-    struct es8323_priv *es8323;
+    struct Es8323Priv *es8323;
     struct i2c_adapter *adapter = to_i2c_adapter(i2c->dev.parent);
 
     if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
         dev_warn(&adapter->dev,
                  "I2C-Adapter doesn't support I2C_FUNC_I2C\n");
-    return -EIO;
+        return -EIO;
     }
 
-    es8323 = devm_kzalloc(&i2c->dev, sizeof(struct es8323_priv), GFP_KERNEL);
-    if (!es8323)
+    es8323 = devm_kzalloc(&i2c->dev, sizeof(struct Es8323Priv), GFP_KERNEL);
+    if (!es8323) {
         return -ENOMEM;
+    }
 
-    es8323->regmap = devm_regmap_init_i2c(i2c, &es8323_regmap_config);
-    if (IS_ERR(es8323->regmap))
-        return PTR_ERR(es8323->regmap);
+    es8323->regMap = devm_regmap_init_i2c(i2c, &es8323RegmapConfig);
+    if (IS_ERR(es8323->regMap)) {
+        return PTR_ERR(es8323->regMap);
+    }
 
     i2c_set_clientdata(i2c, es8323);
 
-    ret = hp_det_init(es8323, &i2c->dev);
+    ret = HpDetInit(es8323, &i2c->dev);
     if (ret) {
         dev_warn(&i2c->dev, "Headphone detection init failed: %d\n", ret);
     }
@@ -145,37 +149,37 @@ static int es8323_i2c_probe(struct i2c_client *i2c)
     return ret;
 }
 
-static void es8323_i2c_remove(struct i2c_client *client)
+static void Es8323I2cRemove(struct i2c_client *client)
 {
-    struct es8323_priv *es8323 = i2c_get_clientdata(client);
-    if (es8323->hp_det_irq > 0) {
-        devm_free_irq(&client->dev, es8323->hp_det_irq, es8323);
+    struct Es8323Priv *es8323 = i2c_get_clientdata(client);
+    if (es8323->hpDetIrq > 0) {
+        devm_free_irq(&client->dev, es8323->hpDetIrq, es8323);
     }
     i2c_set_clientdata(client, NULL);
 
     return;
 }
 
-static const struct i2c_device_id es8323_i2c_id[] = {
+static const struct i2c_device_id es8323I2cId[] = {
     {"es8323", 0},
     {}
 };
 
-MODULE_DEVICE_TABLE(i2c, es8323_i2c_id);
+MODULE_DEVICE_TABLE(i2c, es8323I2cId);
 
-static const struct of_device_id es8323_of_match[] = {
+static const struct of_device_id es8323OfMatch[] = {
     { .compatible = "everest,es8323", },
     { }
 };
-MODULE_DEVICE_TABLE(of, es8323_of_match);
+MODULE_DEVICE_TABLE(of, es8323OfMatch);
 
-static struct i2c_driver es8323_i2c_driver = {
+static struct i2c_driver es8323I2cDriver = {
     .driver = {
         .name = "ES8323",
-        .of_match_table = of_match_ptr(es8323_of_match),
+        .of_match_table = of_match_ptr(es8323OfMatch),
         },
-    .probe = es8323_i2c_probe,
-    .remove = es8323_i2c_remove,
-    .id_table = es8323_i2c_id,
+    .probe = Es8323I2cProbe,
+    .remove = Es8323I2cRemove,
+    .id_table = es8323I2cId,
 };
-module_i2c_driver(es8323_i2c_driver);
+module_i2c_driver(es8323I2cDriver);

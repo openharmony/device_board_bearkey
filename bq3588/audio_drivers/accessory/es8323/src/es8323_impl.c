@@ -647,7 +647,7 @@ int32_t Es8323DaiStartup(const struct AudioCard *card, const struct DaiDevice *d
     (void)card;
     (void)device;
 
-    struct es8323_priv *priv = GetCodecDevice();
+    struct Es8323Priv  *priv = GetCodecDevice();
     if (priv == NULL) {
         AUDIO_DEVICE_LOG_ERR("priv is NULL, default use mic device!");
     }
@@ -658,7 +658,7 @@ int32_t Es8323DaiStartup(const struct AudioCard *card, const struct DaiDevice *d
     }
 
     Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x09, 0x33);
-    if ((priv != NULL) && !(priv->hp_state)) {
+    if ((priv != NULL) && !(priv->hpState)) {
         Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x00);
     } else {
         Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x50);
@@ -708,7 +708,7 @@ int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
 
 int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct DaiDevice *device)
 {
-    struct es8323_priv *priv = GetCodecDevice();
+    struct Es8323Priv  *priv = GetCodecDevice();
     if (priv == NULL) {
         AUDIO_DEVICE_LOG_ERR("priv is NULL, default use speakers device!");
     }
@@ -718,7 +718,7 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
         case AUDIO_DRV_PCM_IOCTL_RENDER_RESUME:
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7C);
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0x00);
-            if ((priv != NULL) && !(priv->hp_state)) {
+            if ((priv != NULL) && !(priv->hpState)) {
                 Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x30);
             } else {
                 Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x0c);
