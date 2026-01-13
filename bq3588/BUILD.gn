@@ -35,8 +35,4 @@ group("bq3588_group") {
       "//device/soc/rockchip/rk3588/hardware/omx_il:lib_omx",
     ]
   }
-
-  if (is_support_boot_animation) {
-    deps += [ "bootanimation:bootanimation" ]
-  }
 }
