@@ -69,6 +69,7 @@
                 <filteritem type="filepath" name="bq3588/loader/*" desc="mirror image file"/>
                 <filteritem type="filepath" name="bq3588/bootanimation/*" desc="raw files"/>
                 <filteritem type="filepath" name="bq3588/updater/config/fstab.updater" desc="配置文件，不能加其他注释"/>
+		<filteritem type="filepath" name="bq3588/ws73e/*" desc="sparklink firmware and test demo, skip check"/>
                 <filteritem type="filename" name="*.pdf" desc="desc files"/>
                 <!--filteritem type="filename" name="*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
                 <!--filteritem type="filepath" name="abcdefg/.*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
@@ -104,6 +105,8 @@
                 <filteritem type="filename" name="*.jpg" desc="jpg"/>
                 <filteritem type="filename" name="*.bmp" desc="bmp"/>
 		<filteritem type="filename" name="bq3588/tools/RKDevTool_v3.28_for_window.zip" desc="烧录工具压缩包"/>
+		<filteritem type="filename" name="bq3588/ws73e/sle_client_sample" desc="sparklink test demo, binary file"/>
+		<filteritem type="filename" name="bq3588/ws73e/sle_server_sample" desc="sparklink test demo, binary file"/>
                 <!--filteritem type="filename" name="*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
                 <!--filteritem type="filepath" name="abcdefg/.*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
                 <!--filteritem type="filepath" name="projectroot/[a-zA-Z0-9]{20,}.sh" desc="Temp files"/-->

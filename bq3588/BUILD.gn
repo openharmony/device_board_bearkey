@@ -21,6 +21,7 @@ group("bq3588_group") {
     "distributedhardware:distributedhardware",
     "kernel:kernel",
     "updater:updater_files",
+    "ws73e:ws73e_driver",
     "//device/soc/rockchip/rk3588/hardware:hardware_group",
   ]
   if (is_support_graphic) {
