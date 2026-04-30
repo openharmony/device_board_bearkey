@@ -79,7 +79,7 @@ static int HpDetInit(struct Es8323Priv *es8323, struct device *dev)
     int ret;
     struct device_node *np = dev->of_node;
 
-    es8323->headsetGpio = of_get_named_gpio(np, "headsetGpio", 0);
+    es8323->headsetGpio = of_get_named_gpio(np, "headset_gpio", 0);
     if (es8323->headsetGpio < 0) {
         dev_err(dev, "Failed to get headsetGpio from DT\n");
         return -EINVAL;

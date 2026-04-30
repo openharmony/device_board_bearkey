@@ -535,25 +535,35 @@ static int32_t Es8323WorkStatusEnable(void)
     return HDF_SUCCESS;
 }
 
+int32_t SpkGpioSetValue(uint16_t gpioNum, uint16_t value)
+{
+    int32_t ret;
+    ret = gpio_request(gpioNum, "spk-con");
+    if (ret != 0 && ret != NUM_NEG_SIXTEEN) {
+        AUDIO_DEVICE_LOG_ERR("gpio0_b3 request failed. ret:%d", ret);
+        gpio_free(gpioNum);
+        return HDF_FAILURE;
+    }
+    ret = GpioSetDir(gpioNum, GPIO_DIR_OUT);
+    if (ret != HDF_SUCCESS) {
+        AUDIO_DEVICE_LOG_ERR("set gpio dir failed. ret:%d", ret);
+        return ret;
+    }
+    ret = GpioWrite(gpioNum, value);
+    if (ret != HDF_SUCCESS) {
+        AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
+        return ret;
+    }
+    return HDF_SUCCESS;
+}
+
 /*
  * ES8323 Hardware Rest, enable speaker
 */
 static int32_t Es8323HardwareRest(void)
 {
     int32_t ret;
-    const char *spk_con = "spk-con";
-    ret = gpio_request(RK3588_GPIO_NUMBER, spk_con);
-    if (ret != 0 && ret != NUM_NEG_SIXTEEN) {
-        AUDIO_DEVICE_LOG_ERR("gpio0_b3 request failed. ret:%d", ret);
-        gpio_free(RK3588_GPIO_NUMBER);
-        return HDF_FAILURE;
-    }
-    ret = GpioSetDir(RK3588_GPIO_NUMBER, GPIO_DIR_OUT);
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("set gpio dir failed. ret:%d", ret);
-        return ret;
-    }
-    ret = GpioWrite(RK3588_GPIO_NUMBER, GPIO_VAL_HIGH);
+    ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_HIGH);
     if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
         return ret;
@@ -708,10 +718,8 @@ int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
 
 int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct DaiDevice *device)
 {
+    int32_t ret;
     struct Es8323Priv  *priv = GetCodecDevice();
-    if (priv == NULL) {
-        AUDIO_DEVICE_LOG_ERR("priv is NULL, default use speakers device!");
-    }
 
     switch (cmd) {
         case AUDIO_DRV_PCM_IOCTL_RENDER_START:
@@ -719,9 +727,19 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7C);
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0x00);
             if ((priv != NULL) && !(priv->hpState)) {
+                ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_HIGH);
+                if (ret != HDF_SUCCESS) {
+                    AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
+                    return ret;
+                }
                 Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x30);
             } else {
                 Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x0c);
+                ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_LOW);
+                if (ret != HDF_SUCCESS) {
+                    AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
+                    return ret;
+                }
             }
             break;
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_START:
@@ -740,7 +758,6 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_STOP:
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_PAUSE:
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ADCPOWER, 0xFF);
-
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0xFF);
             Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7B);
         break;
