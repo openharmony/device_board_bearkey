@@ -21,6 +21,7 @@ group("bq3588_group") {
     "distributedhardware:distributedhardware",
     "kernel:kernel",
     "updater:updater_files",
+    "ws73e:ws73e_driver",
     "//device/soc/rockchip/rk3588/hardware:hardware_group",
   ]
   if (is_support_graphic) {
@@ -34,9 +35,5 @@ group("bq3588_group") {
       "//device/soc/rockchip/rk3588/hardware/codec:codec_oem_interface",
       "//device/soc/rockchip/rk3588/hardware/omx_il:lib_omx",
     ]
-  }
-
-  if (is_support_boot_animation) {
-    deps += [ "bootanimation:bootanimation" ]
   }
 }
