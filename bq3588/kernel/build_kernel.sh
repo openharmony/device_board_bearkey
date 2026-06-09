@@ -176,7 +176,7 @@ else
 fi
 
 cd ${KERNEL_SRC_TMP_PATH}
-eval $MAKE_OHOS_ENV ./make-ohos.sh TB-RK3588X0 $RAMDISK_ARG ${ENABLE_LTO_O0}
+eval $MAKE_OHOS_ENV ./make-ohos.sh BQ3588HM $RAMDISK_ARG ${ENABLE_LTO_O0}
 
 mkdir -p ${2}
 

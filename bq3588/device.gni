@@ -21,6 +21,7 @@ if (!defined(defines)) {
   defines = []
 }
 
+defines += [ "PRODUCT_BQ3588" ]
 declare_args() {
   is_support_boot_animation = true
   is_support_graphic = true
