@@ -143,7 +143,7 @@ RetCode RKExifNode::SetGpsInfoMetadata(common_metadata_header_t *data)
     constexpr uint32_t groupLen = 3;
     count = entry.count;
     CAMERA_LOGI("%{public}s  gps count %{public}d)\n", __FUNCTION__,  count);
-    if (count!= groupLen) {
+    if (count != groupLen) {
         CAMERA_LOGE("%{public}s  gps data count error\n", __FUNCTION__);
         return RC_ERROR;
     }

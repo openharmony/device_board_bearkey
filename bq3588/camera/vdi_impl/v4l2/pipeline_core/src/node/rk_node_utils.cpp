@@ -43,11 +43,12 @@ static bool CheckIfNeedDoTransform(std::shared_ptr<IBuffer>& buffer)
         CAMERA_LOGE("BufferScaleFormatTransform Error buffer == nullptr");
         return false;
     }
-    CAMERA_LOGD("BufferScaleFormatTransform, \
-streamId[%{public}d], index[%{public}d], %{public}d * %{public}d ==> %{public}d * %{public}d, format: %{public}d ==> %{public}d , encodeType: %{public}d",
-        buffer->GetStreamId(), buffer->GetIndex(),
-        buffer->GetCurWidth(), buffer->GetCurHeight(), buffer->GetWidth(), buffer->GetHeight(),
-        buffer->GetCurFormat(), buffer->GetFormat(), buffer->GetEncodeType());
+    CAMERA_LOGD("BufferScaleFormatTransform, streamId[%{public}d], index[%{public}d],"
+                buffer->GetStreamId(), buffer->GetIndex());
+    CAMERA_LOGD("%{public}d * %{public}d ==> %{public}d * %{public}d,"
+                buffer->GetCurWidth(), buffer->GetCurHeight(), buffer->GetWidth(), buffer->GetHeight());
+    CAMERA_LOGD("format: %{public}d ==> %{public}d , encodeType: %{public}d",
+                buffer->GetCurFormat(), buffer->GetFormat(), buffer->GetEncodeType());
 
     if (buffer->GetCurWidth() == buffer->GetWidth()
         && buffer->GetCurHeight() == buffer->GetHeight()

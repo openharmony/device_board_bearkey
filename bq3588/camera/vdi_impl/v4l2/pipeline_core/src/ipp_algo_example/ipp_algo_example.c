@@ -54,9 +54,7 @@ int Process(IppAlgoBuffer *inBuffer[], int inBufferCount, IppAlgoBuffer *outBuff
         }
     }
 
-    if (outBuffer != NULL && outBuffer->addr != NULL) {
-        printf("out buffer addr = %p, size = %u, id = %d\n", outBuffer->addr, outBuffer->size, outBuffer->id);
-    } else {
+    if (outBuffer == NULL || outBuffer->addr == NULL) {
         printf("out buffer is NULL\n");
     }
 

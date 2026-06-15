@@ -30,9 +30,7 @@
 #include "mpp_mem.h"
 #include "mpp_log.h"
 #include "mpp_common.h"
-extern "C" {
 #include "mpi_enc_utils.h"
-}
 
 
 namespace OHOS::Camera {

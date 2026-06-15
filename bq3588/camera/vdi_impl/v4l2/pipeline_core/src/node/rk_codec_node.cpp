@@ -16,10 +16,10 @@
 #include <securec.h>
 #include "camera_dump.h"
 
-extern "C" {
+
 #include <jpeglib.h>
 #include <transupp.h>
-}
+
 
 namespace OHOS::Camera {
 const unsigned long long TIME_CONVERSION_NS_S = 1000000000ULL; /* ns to s */
@@ -144,19 +144,19 @@ RetCode RKCodecNode::ConfigJpegQuality(common_metadata_header_t* data)
         return RC_OK;
     }
 
-    const int HIGH_QUALITY_JPEG = 100;
-    const int MIDDLE_QUALITY_JPEG = 95;
-    const int LOW_QUALITY_JPEG = 85;
+    const int highQualityJpeg = 100;
+    const int middleQualityJpeg = 95;
+    const int lowQualityJpeg = 85;
 
     CAMERA_LOGI("OHOS_JPEG_QUALITY is = %{public}d", static_cast<int>(entry.data.u8[0]));
     if (*entry.data.i32 == OHOS_CAMERA_JPEG_LEVEL_LOW) {
-        jpegQuality_ = LOW_QUALITY_JPEG;
+        jpegQuality_ = lowQualityJpeg;
     } else if (*entry.data.i32 == OHOS_CAMERA_JPEG_LEVEL_MIDDLE) {
-        jpegQuality_ = MIDDLE_QUALITY_JPEG;
+        jpegQuality_ = middleQualityJpeg;
     } else if (*entry.data.i32 == OHOS_CAMERA_JPEG_LEVEL_HIGH) {
-        jpegQuality_ = HIGH_QUALITY_JPEG;
+        jpegQuality_ = highQualityJpeg;
     } else {
-        jpegQuality_ = HIGH_QUALITY_JPEG;
+        jpegQuality_ = highQualityJpeg;
     }
     return RC_OK;
 }
@@ -180,13 +180,13 @@ RetCode RKCodecNode::Config(const int32_t streamId, const CaptureMeta& meta)
     return rc;
 }
 
-void RKCodecNode::encodeJpegToMemory(unsigned char* image, int width, int height,
-    const char* comment, unsigned long* jpegSize, unsigned char** jpegBuf)
+void RKCodecNode::EncodeJpegToMemory(unsigned char* image, int width, int height,
+                                     unsigned long* jpegSize, unsigned char** jpegBuf)
 {
     struct jpeg_compress_struct cInfo;
     struct jpeg_error_mgr jErr;
     JSAMPROW row_pointer[1];
-    int row_stride = 0;
+    int rowStride = 0;
     constexpr uint32_t colorMap = 3;
     constexpr uint32_t pixelsThick = 3;
 
@@ -199,18 +199,14 @@ void RKCodecNode::encodeJpegToMemory(unsigned char* image, int width, int height
     cInfo.in_color_space = JCS_RGB;
 
     jpeg_set_defaults(&cInfo);
-    CAMERA_LOGE("RKCodecNode::encodeJpegToMemory jpegQuality_ is = %{public}d", jpegQuality_);
+    CAMERA_LOGE("RKCodecNode::EncodeJpegToMemory jpegQuality_ is = %{public}d", jpegQuality_);
     jpeg_set_quality(&cInfo, jpegQuality_, TRUE);
     jpeg_mem_dest(&cInfo, jpegBuf, jpegSize);
     jpeg_start_compress(&cInfo, TRUE);
 
-    if (comment) {
-        jpeg_write_marker(&cInfo, JPEG_COM, (const JOCTET*)comment, strlen(comment));
-    }
-
-    row_stride = width;
+    rowStride = width;
     while (cInfo.next_scanline < cInfo.image_height) {
-        row_pointer[0] = &image[cInfo.next_scanline * row_stride * pixelsThick];
+        row_pointer[0] = &image[cInfo.next_scanline * rowStride * pixelsThick];
         jpeg_write_scanlines(&cInfo, row_pointer, 1);
     }
 
@@ -228,14 +224,14 @@ void RKCodecNode::encodeJpegToMemory(unsigned char* image, int width, int height
     }
 }
 
-static int findStartCode(unsigned char *data, size_t dataSz)
+static int FindStartCode(unsigned char *data, size_t dataSz)
 {
     constexpr uint32_t dataSize = 4;
     constexpr uint32_t dataBit2 = 2;
     constexpr uint32_t dataBit3 = 3;
 
     if (data == nullptr) {
-        CAMERA_LOGI("RKCodecNode::findStartCode paramater == nullptr");
+        CAMERA_LOGI("RKCodecNode::FindStartCode paramater == nullptr");
         return -1;
     }
 
@@ -247,12 +243,12 @@ static int findStartCode(unsigned char *data, size_t dataSz)
     return -1;
 }
 
-static constexpr uint32_t nalBit = 0x1F;
 static void SerchIFps(unsigned char* buf, size_t bufSize, std::shared_ptr<IBuffer>& buffer)
 {
     size_t nalType = 0;
     size_t idx = 0;
     size_t size = bufSize;
+    static constexpr uint32_t nalBit = 0x1F;
     constexpr uint32_t nalTypeValue = 0x05;
 
     if (buffer == nullptr || buf == nullptr) {
@@ -261,7 +257,7 @@ static void SerchIFps(unsigned char* buf, size_t bufSize, std::shared_ptr<IBuffe
     }
 
     for (int i = 0; i < bufSize; i++) {
-        int ret = findStartCode(buf + idx, size);
+        int ret = FindStartCode(buf + idx, size);
         if (ret == -1) {
             idx += 1;
             size -= 1;
@@ -307,8 +303,8 @@ void RKCodecNode::Yuv420ToJpeg(std::shared_ptr<IBuffer>& buffer)
 
     unsigned char* jBuf = nullptr;
     unsigned long jpegSize = 0;
-    encodeJpegToMemory((unsigned char *)buffer->GetVirAddress(), buffer->GetWidth(), buffer->GetHeight(),
-        nullptr, &jpegSize, &jBuf);
+    unsigned char *image = (unsigned char *)buffer->GetVirAddress();
+    EncodeJpegToMemory(image, buffer->GetWidth(), buffer->GetHeight(), &jpegSize, &jBuf);
     ret = memcpy_s((unsigned char*)buffer->GetSuffaceBufferAddr(), buffer->GetSuffaceBufferSize(), jBuf, jpegSize);
     if (ret == 0) {
         buffer->SetIsValidDataInSurfaceBuffer(true);
@@ -324,7 +320,7 @@ void RKCodecNode::Yuv420ToJpeg(std::shared_ptr<IBuffer>& buffer)
 void RKCodecNode::Yuv420ToH264(std::shared_ptr<IBuffer>& buffer)
 {
     int ret = 0;
-    size_t buf_size = 0;
+    size_t bufSize = 0;
     struct timespec ts = {};
     int64_t timestamp = 0;
     constexpr uint32_t minIFrameBegin = 5;
@@ -343,39 +339,38 @@ void RKCodecNode::Yuv420ToH264(std::shared_ptr<IBuffer>& buffer)
         }
     }
 
-    {
-        std::unique_lock<std::mutex> l(hal_mpp);
-        if (halCtx_ == nullptr) {
-            MpiEncTestArgs args = {};
-            args.width       = buffer->GetWidth();
-            args.height      = buffer->GetHeight();
-            args.format      = MPP_FMT_YUV420P;
-            args.type        = MPP_VIDEO_CodingAVC;
-            halCtx_ = hal_mpp_ctx_create(&args);
-            CAMERA_LOGI("RKCodecNode::Yuv420ToH264 hal_mpp_ctx_create d, index = %{public}d, mppStatus_ = %{public}d",
-                buffer->GetIndex(), mppStatus_);
-        }
-        if (halCtx_ == nullptr) {
-            CAMERA_LOGI("RKCodecNode::Yuv420ToH264 halCtx_ = %{public}p\n", halCtx_);
-            return;
-        }
-        buf_size = ((MpiEncTestData *)halCtx_)->frame_size;
-        ret = hal_mpp_encode(halCtx_, buffer->GetFileDescriptor(), (unsigned char *)buffer->GetVirAddress(), &buf_size);
-        if (mppStatus_ < minIFrameBegin) {
-            mppStatus_++;
-            hal_mpp_ctx_delete(halCtx_);
-            halCtx_ = nullptr;
-        }
+    std::unique_lock<std::mutex> l(hal_mpp);
+    if (halCtx_ == nullptr) {
+        MpiEncTestArgs args = {};
+        args.width       = buffer->GetWidth();
+        args.height      = buffer->GetHeight();
+        args.format      = MPP_FMT_YUV420P;
+        args.type        = MPP_VIDEO_CodingAVC;
+        halCtx_ = hal_mpp_ctx_create(&args);
+        CAMERA_LOGI("RKCodecNode::Yuv420ToH264 hal_mpp_ctx_create d, index = %{public}d, mppStatus_ = %{public}d",
+            buffer->GetIndex(), mppStatus_);
     }
-    SerchIFps((unsigned char *)buffer->GetVirAddress(), buf_size, buffer);
+    if (halCtx_ == nullptr) {
+        CAMERA_LOGI("RKCodecNode::Yuv420ToH264 halCtx_ = %{public}p\n", halCtx_);
+        return;
+    }
+    bufSize = ((MpiEncTestData *)halCtx_)->frame_size;
+    ret = hal_mpp_encode(halCtx_, buffer->GetFileDescriptor(), (unsigned char *)buffer->GetVirAddress(), &bufSize);
+    if (mppStatus_ < minIFrameBegin) {
+        mppStatus_++;
+        hal_mpp_ctx_delete(halCtx_);
+        halCtx_ = nullptr;
+    }
+    
+    SerchIFps((unsigned char *)buffer->GetVirAddress(), bufSize, buffer);
 
-    buffer->SetEsFrameSize(buf_size);
+    buffer->SetEsFrameSize(bufSize);
     clock_gettime(CLOCK_MONOTONIC, &ts);
     timestamp = ts.tv_nsec + ts.tv_sec * TIME_CONVERSION_NS_S;
     buffer->SetEsTimestamp(timestamp);
     buffer->SetIsValidDataInSurfaceBuffer(false);
     CAMERA_LOGI("RKCodecNode::Yuv420ToH264, H264 size = %{public}d ret = %{public}d timestamp = %{public}lld\n",
-        buf_size, ret, timestamp);
+        bufSize, ret, timestamp);
 }
 
 void RKCodecNode::DeliverBuffer(std::shared_ptr<IBuffer>& buffer)
