@@ -11,10 +11,9 @@ Copyright Notice and License Texts
 Software: hdf audio driver 
 
 Copyright notice:
-Copyright (c) 2022 Huawei Device Co., Ltd.
 Copyright (c) 2022 Institute of Software, CAS.
 Copyright (c) 2021 Rockchip Electronics Co., Ltd.
-Copyright (C) 2022 HiHope Open Source Organization .
+Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
 
 License:Apache License V2.0
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -380,8 +379,8 @@ Public License instead of this License.
 Software: hdf camera driver 
 
 Copyright notice:
-Copyright (c) 2021 Huawei Device Co., Ltd.
-Copyright (c) 2022 Huawei Device Co., Ltd.
+Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
+Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
 
 License:Apache License V2.0
 Licensed under the Apache License, Version 2.0 (the "License");

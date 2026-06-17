@@ -1,8 +1,7 @@
-device_board_hihope
+device_board_bearkey
 The hcs,neptune100,picture,shields and others directories are licensed under Apache License, Version 2.0.
 
 (1) The directories below are licensed under Apache License, Version 2.0.
-./bq3588/bootanimation
 ./bq3588/camera
 ./bq3588/cfg
 ./bq3588/distributedhardware
@@ -10,6 +9,7 @@ The hcs,neptune100,picture,shields and others directories are licensed under Apa
 ./bq3588/updater
 ./bq3588/audio_alsa
 ./bq3588/loader
+./bq3588/ws73e
 
 (2) The directories below are licensed under GNU General Public License, version 2.
 ./bq3588/audio_drivers
