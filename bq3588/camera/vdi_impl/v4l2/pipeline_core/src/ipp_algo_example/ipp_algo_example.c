@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,9 +54,7 @@ int Process(IppAlgoBuffer *inBuffer[], int inBufferCount, IppAlgoBuffer *outBuff
         }
     }
 
-    if (outBuffer != NULL && outBuffer->addr != NULL) {
-        printf("out buffer addr = %p, size = %u, id = %d\n", outBuffer->addr, outBuffer->size, outBuffer->id);
-    } else {
+    if (outBuffer == NULL || outBuffer->addr == NULL) {
         printf("out buffer is NULL\n");
     }
 

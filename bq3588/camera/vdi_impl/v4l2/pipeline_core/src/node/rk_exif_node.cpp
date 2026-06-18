@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -143,7 +143,7 @@ RetCode RKExifNode::SetGpsInfoMetadata(common_metadata_header_t *data)
     constexpr uint32_t groupLen = 3;
     count = entry.count;
     CAMERA_LOGI("%{public}s  gps count %{public}d)\n", __FUNCTION__,  count);
-    if (count!= groupLen) {
+    if (count != groupLen) {
         CAMERA_LOGE("%{public}s  gps data count error\n", __FUNCTION__);
         return RC_ERROR;
     }
