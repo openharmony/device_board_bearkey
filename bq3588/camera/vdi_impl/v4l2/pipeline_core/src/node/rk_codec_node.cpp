@@ -16,10 +16,10 @@
 #include <securec.h>
 #include "camera_dump.h"
 
-
+extern "C" {
 #include <jpeglib.h>
 #include <transupp.h>
-
+}
 
 namespace OHOS::Camera {
 const unsigned long long TIME_CONVERSION_NS_S = 1000000000ULL; /* ns to s */
@@ -47,7 +47,7 @@ RetCode RKCodecNode::Start(const int32_t streamId)
 RetCode RKCodecNode::Stop(const int32_t streamId)
 {
     CAMERA_LOGI("RKCodecNode::Stop streamId = %{public}d\n", streamId);
-    std::unique_lock<std::mutex> l(hal_mpp);
+    std::unique_lock<std::mutex> l(halMpp);
 
     if (halCtx_ != nullptr) {
         CAMERA_LOGI("RKCodecNode::Stop hal_mpp_ctx_delete\n");
@@ -75,6 +75,7 @@ static void RotJpegImg(
     jvirt_barray_ptr *src_coef_arrays;
     jvirt_barray_ptr *dst_coef_arrays;
 
+    CAMERA_LOGI("RotJpegImg enter");
     inputInfo.err = jpeg_std_error(&jerrIn);
     jpeg_create_decompress(&inputInfo);
     outInfo.err = jpeg_std_error(&jerrOut);
@@ -190,6 +191,7 @@ void RKCodecNode::EncodeJpegToMemory(unsigned char* image, int width, int height
     constexpr uint32_t colorMap = 3;
     constexpr uint32_t pixelsThick = 3;
 
+    CAMERA_LOGI("EncodeJpegToMemory enter");
     cInfo.err = jpeg_std_error(&jErr);
 
     jpeg_create_compress(&cInfo);
@@ -213,6 +215,7 @@ void RKCodecNode::EncodeJpegToMemory(unsigned char* image, int width, int height
     jpeg_finish_compress(&cInfo);
     jpeg_destroy_compress(&cInfo);
 
+    CAMERA_LOGI("EncodeJpegToMemory jpegRotation_=%d", jpegRotation_);
     size_t rotJpgSize = 0;
     unsigned char* rotJpgBuf = nullptr;
     /* rotate image */
@@ -339,7 +342,7 @@ void RKCodecNode::Yuv420ToH264(std::shared_ptr<IBuffer>& buffer)
         }
     }
 
-    std::unique_lock<std::mutex> l(hal_mpp);
+    std::unique_lock<std::mutex> l(halMpp);
     if (halCtx_ == nullptr) {
         MpiEncTestArgs args = {};
         args.width       = buffer->GetWidth();
@@ -417,7 +420,7 @@ RetCode RKCodecNode::Capture(const int32_t streamId, const int32_t captureId)
 RetCode RKCodecNode::CancelCapture(const int32_t streamId)
 {
     CAMERA_LOGI("RKCodecNode::CancelCapture streamid = %{public}d", streamId);
-    std::unique_lock<std::mutex> l(hal_mpp);
+    std::unique_lock<std::mutex> l(halMpp);
     if (halCtx_ != nullptr) {
         CAMERA_LOGI("RKCodecNode::Stop hal_mpp_ctx_delete\n");
         hal_mpp_ctx_delete(halCtx_);

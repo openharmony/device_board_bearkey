@@ -37,15 +37,15 @@ static uint32_t ConvertOhosFormat2RkFormat(uint32_t format)
     return RK_FORMAT_UNKNOWN;
 }
 
-static bool CheckIfNeedDoTransform(std::shared_ptr<IBuffer>& buffer)
+static bool g_checkIfNeedDoTransform(std::shared_ptr<IBuffer>& buffer)
 {
     if (buffer == nullptr) {
         CAMERA_LOGE("BufferScaleFormatTransform Error buffer == nullptr");
         return false;
     }
-    CAMERA_LOGD("BufferScaleFormatTransform, streamId[%{public}d], index[%{public}d],"
+    CAMERA_LOGD("BufferScaleFormatTransform, streamId[%{public}d], index[%{public}d],",
                 buffer->GetStreamId(), buffer->GetIndex());
-    CAMERA_LOGD("%{public}d * %{public}d ==> %{public}d * %{public}d,"
+    CAMERA_LOGD("%{public}d * %{public}d ==> %{public}d * %{public}d,",
                 buffer->GetCurWidth(), buffer->GetCurHeight(), buffer->GetWidth(), buffer->GetHeight());
     CAMERA_LOGD("format: %{public}d ==> %{public}d , encodeType: %{public}d",
                 buffer->GetCurFormat(), buffer->GetFormat(), buffer->GetEncodeType());
@@ -136,7 +136,7 @@ static void TransformToFd(std::shared_ptr<IBuffer>& buffer, int32_t srcRkFmt, in
 void RkNodeUtils::BufferScaleFormatTransform(std::shared_ptr<IBuffer>& buffer, bool flagToFd)
 {
     static std::mutex mtx;
-    if (!CheckIfNeedDoTransform(buffer)) {
+    if (!g_checkIfNeedDoTransform(buffer)) {
         return;
     }
     auto srcRkFmt = ConvertOhosFormat2RkFormat(buffer->GetCurFormat());
