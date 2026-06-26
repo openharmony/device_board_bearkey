@@ -65,6 +65,7 @@
                 <filteritem type="filepath" name="bq3588/cfg/fstab.rk3588" desc="配置文件，不能加其他注释"/>
                 <filteritem type="filepath" name="bq3588/loader/*" desc="mirror image file"/>
                 <filteritem type="filepath" name="bq3588/bootanimation/*" desc="raw files"/>
+                <filteritem type="filepath" name="bq3588/kernel/mali_csffw.bin" desc="gpu firmware files"/>
                 <filteritem type="filepath" name="bq3588/updater/config/fstab.updater" desc="配置文件，不能加其他注释"/>
 		<filteritem type="filepath" name="bq3588/ws73e/*" desc="sparklink firmware and test demo, skip check"/>
                 <filteritem type="filename" name="*.pdf" desc="desc files"/>
