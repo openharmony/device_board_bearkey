@@ -48,8 +48,8 @@ public:
     RetCode ConfigJpegQuality(common_metadata_header_t* data);
     RetCode Config(const int32_t streamId, const CaptureMeta& meta) override;
 private:
-    void encodeJpegToMemory(unsigned char* image, int width, int height,
-            const char* comment, unsigned long* jpegSize, unsigned char** jpegBuf);
+    void EncodeJpegToMemory(unsigned char* image, int width, int height,
+                            unsigned long* jpegSize, unsigned char** jpegBuf);
     void Yuv420ToJpeg(std::shared_ptr<IBuffer>& buffer);
     void Yuv420ToH264(std::shared_ptr<IBuffer>& buffer);
 
@@ -57,7 +57,7 @@ private:
     int mppStatus_ = 0;
     uint32_t jpegRotation_;
     uint32_t jpegQuality_;
-    std::mutex hal_mpp;
+    std::mutex halMpp;
 };
 } // namespace OHOS::Camera
 #endif
