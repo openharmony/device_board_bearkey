@@ -17,16 +17,33 @@
 ```
 device/board/bearkey
 ├── bq3588                            # 贝启BQ3588HM开发套件
+    ├── audio_drivers                 # audio alsa方案代码
+    ├── camera                        # camera相关代码
+    ├── cfg                           # fstab, init等启动相关cfg文件
+    ├── distributedhardware           # 分布式相关配置
+    ├── kernel                        # 内核编译脚本, 工具, defconfig配置文件
+    ├── loader                        # uboot.img MiniLoaderAll.bin等预编译的启动镜像和配置
+    ├── updater                       # 升级子系统相关的启动配置
+    ├── ws73e                         # 星闪相关的ko、固件、ini文件和测试demo
+    ├── BUILD.gn
+    ├── config.gni
+    ├── device.gni
+    └── ohos.build
 ```
 
-## 使用说明
+## 编译构建/使用方法
 
 贝启BQ3588HM开发套件参考:
 
 - [bq3588](https://gitee.com/openharmony/device_board_bearkey/blob/master/bq3588/README_zh.md)
+
+## 许可说明
+
+参见对应目录的LICENSE文件及代码声明
 
 ## 相关仓
 
 * [vendor/bearkey](https://gitcode.com/openharmony/vendor_bearkey)
 * [device\soc\rockchip](https://gitee.com/openharmony/device_soc_rockchip)
 * [device/board/bearkey](https://gitcode.com/openharmony/device_board_bearkey)
+
