@@ -35,7 +35,7 @@ device/board/bearkey
 
 贝启BQ3588HM开发套件参考:
 
-- [bq3588](https://gitee.com/openharmony/device_board_bearkey/blob/master/bq3588/README_zh.md)
+- [bq3588](https://gitcode.com/openharmony-sig/device_board_bearkey/blob/master/bq3588/README_zh.md)
 
 ## 许可说明
 
@@ -43,7 +43,7 @@ device/board/bearkey
 
 ## 相关仓
 
-* [vendor/bearkey](https://gitcode.com/openharmony/vendor_bearkey)
-* [device\soc\rockchip](https://gitee.com/openharmony/device_soc_rockchip)
-* [device/board/bearkey](https://gitcode.com/openharmony/device_board_bearkey)
+* [vendor/bearkey](https://gitcode.com/openharmony-sig/vendor_bearkey)
+* [device/soc/rockchip](https://gitcode.com/openharmony/device_soc_rockchip)
+* [device/board/bearkey](https://gitcode.com/openharmony-sig/device_board_bearkey)
 
