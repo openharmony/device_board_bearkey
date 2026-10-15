@@ -1,32 +1,36 @@
 # device_board_bearkey
 
-## 简介
+## Introduction
 
-#### Bearkey简介
+#### About Bearkey
 
-厦门贝启科技有限公司成立于2015年，公司汇聚了一支由瑞芯微与星网锐捷R&D团队精英构成的核心成员队伍，作为业界领先的Rockchip方案应用专家，致力于嵌入式系统软硬件的研发、生产、销售与服务 。公司定制产品及解决方案全面应用于低空经济、无人机、工业物联网、机器人、智能家居、智慧空间、智慧社区、展厅应用、多媒体、商业显示、车载、教育、医疗等领域。适配OpenHarmony系统的产品经多场景验证，展现出高稳定性和可靠性，已具备规模商用及跨行业赋能能力。
+Xiamen Bearkey Technology Co., Ltd. was founded in 2015. Its core team consists of elite R&D members from Rockchip and Star‑Net Ruijie. As a leading industry expert in Rockchip‑based solution applications, the company is dedicated to the R&D, production, sales and service of embedded system hardware and software.
 
-#### 开发板简介
+Its customized products and solutions are widely adopted in low‑altitude economy, UAVs, industrial IoT, robots, smart home, smart spaces, smart communities, exhibition halls, multimedia, commercial displays, vehicle‑mounted devices, education, medical care and other fields.
 
-- [贝启BQ3588HM开发套件]
+Products adapted for OpenHarmony have been verified in multiple scenarios with high stability and reliability, and are ready for large‑scale commercial deployment and cross‑industry empowerment.
 
-贝启BQ3588HM开发套件，型号BQ3588HM是基于Rockchip RK3588，集成四核Cortex-A76和四核Cortex-A55核心，主频2.4GHz，配备Mali-G610 GPU及2D加速引擎，支持多种图形标准，实现流畅视觉体验，支持8K视频解码和60Hz刷新率输出，集 成 6TOPS 算 力NPU。支持Transformer架构下超大规模参数模型的私有化部署。支 持 深 度学 习 框 架:TensorFlow、Caffe、Pytorch、OnnxNN等。贝启RK3588开发板支持蓝牙、Wi-Fi、星闪、北斗GPS定位，拥有丰富的扩展接口，支持多种音视频输入输出接口，包括MIPI显示、EDP显示、HDMI显示，双路MIPI摄像头\USB摄像头，支持耳机、麦克风座子、喇叭座子；配置双千兆自适应RJ45以太网口，支持扩展模组4G/5G上网，配置8GB内存和64GB存储，支持TF卡、固态硬盘\SATA硬盘扩展，具备丰富外部接口与通信方式，包括RS485、RS232、DI、DO、USB等。
+#### Development Board Introduction
 
-## 目录
+- [Bearkey BQ3588HM Development Kit]
+
+The Bearkey BQ3588HM development kit is built on Rockchip RK3588. It integrates four‑core Cortex‑A76 + four‑core Cortex‑A55 processors with a main frequency up to 2.4 GHz. It is equipped with Mali‑G610 GPU and 2D acceleration engine supporting multiple graphics standards for smooth visual performance. It supports 8K video decoding and 60 Hz display output, as well as an NPU delivering 6 TOPS computing power. It supports private deployment of ultra‑large‑parameter models based on the Transformer architecture, and is compatible with models exported from deep‑learning frameworks including machine learning framework, Caffe, PyTorch, OnnxNN, etc. This RK3588 board supports Bluetooth, Wi‑Fi, SparkLink, and BeiDou/GPS positioning. It provides abundant expansion interfaces and various audio‑video I/O: MIPI‑DSI, EDP, HDMI display interfaces, dual‑channel MIPI cameras and USB cameras, plus jacks for headsets, microphones and speakers. It features dual adaptive gigabit RJ45 Ethernet ports, and supports 4G/5G expansion modules for cellular internet access. The board comes with 8 GB RAM + 64 GB storage, expandable via TF‑card or SSD/SATA hard disk. Rich external interfaces and communication peripherals are available: RS485, RS232, DI, DO, USB and more.
+
+## Directory
 
 ```
 device/board/bearkey
-├── bq3588                            # 贝启BQ3588HM开发套件
+├── bq3588                            # Bearkey BQ3588HM Development Kit
 ```
 
-## 使用说明
+## Usage Instructions
 
-贝启BQ3588HM开发套件参考:
-- [bq3588](https://gitee.com/openharmony/device_board_bearkey/blob/master/bq3588/README_zh.md)
+Reference for Bearkey BQ3588HM Development Kit:
+- [bq3588](https://gitcode.com/openharmony-sig/device_board_bearkey/blob/OpenHarmony_standard_p7885_rk3588_d3000m_20251103/bq3588/README_zh.md)
 
-## 相关仓
+## Related Repositories
 
-* [vendor/bearkey](https://gitcode.com/openharmony/vendor_bearkey)
-* [device\soc\rockchip](https://gitee.com/openharmony/device_soc_rockchip)
-* [device/board/bearkey](https://gitcode.com/openharmony/device_board_bearkey)
+* [vendor/bearkey](https://gitcode.com/openharmony-sig/vendor_bearkey)
+* [device\soc\rockchip](https://gitcode.com/openharmony/device_soc_rockchip)
+* [device/board/bearkey](https://gitcode.com/openharmony-sig/device_board_bearkey)
 
