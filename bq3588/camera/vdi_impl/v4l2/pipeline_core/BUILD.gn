@@ -64,7 +64,6 @@ ohos_shared_library("camera_pipeline_core") {
     "src/node",
     "//device/soc/rockchip/rk3588/hardware/rga/include",
     "//device/soc/rockchip/rk3588/hardware/mpp/include",
-    "//drivers/hdf_core/interfaces/inner_api/utils",
     "//third_party/libexif",
     "$camera_path/include",
     "$camera_path/../interfaces",
@@ -78,7 +77,7 @@ ohos_shared_library("camera_pipeline_core") {
     "$board_camera_path/device_manager:camera_device_manager",
     "//device/soc/rockchip/rk3588/hardware/mpp:libmpp",
     "//device/soc/rockchip/rk3588/hardware/rga:librga",
-    "//third_party/libjpeg-turbo:turbojpeg_static",
+    "//third_party/libjpeg-turbo:turbojpeg",
   ]
 
   if (is_standard_system) {

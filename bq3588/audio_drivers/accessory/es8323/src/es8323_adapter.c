@@ -31,35 +31,6 @@ struct DaiData g_es8323DaiData = {
     .ops = &g_es8323DaiDeviceOps,
 };
 
-/* HdfDriverEntry */
-static int32_t GetServiceName(const struct HdfDeviceObject *device)
-{
-    const struct DeviceResourceNode *node = NULL;
-    struct DeviceResourceIface *drsOps = NULL;
-    int32_t ret;
-    if (device == NULL) {
-        AUDIO_DRIVER_LOG_ERR("input HdfDeviceObject object is nullptr.");
-        return HDF_FAILURE;
-    }
-    node = device->property;
-    if (node == NULL) {
-        AUDIO_DRIVER_LOG_ERR("get drs node is nullptr.");
-        return HDF_FAILURE;
-    }
-    drsOps = DeviceResourceGetIfaceInstance(HDF_CONFIG_SOURCE);
-    if (drsOps == NULL || drsOps->GetString == NULL) {
-        AUDIO_DRIVER_LOG_ERR("drsOps or drsOps getString is null!");
-        return HDF_FAILURE;
-    }
-    ret = drsOps->GetString(node, "serviceName", &g_es8323Data.drvCodecName, 0);
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("read serviceName failed.");
-        return ret;
-    }
-    AUDIO_DRIVER_LOG_INFO("g_es8323Data.drvCodecName = %s", g_es8323Data.drvCodecName);
-    return HDF_SUCCESS;
-}
-
 /* HdfDriverEntry implementations */
 static int32_t Es8323DriverBind(struct HdfDeviceObject *device)
 {
@@ -77,11 +48,11 @@ static int32_t Es8323DriverInit(struct HdfDeviceObject *device)
         return HDF_ERR_INVALID_OBJECT;
     }
 
-    ret = Es8323GetConfigInfo(device, &g_es8323Data);
-    if (ret !=  HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("Es8323GetConfigInfo failed.");
-        return ret;
+    if (CodecGetConfigInfo(device, &g_es8323Data) !=  HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("CodecGetConfigInfo failed.");
+        return HDF_FAILURE;
     }
+
     if (CodecDaiGetPortConfigInfo(device, &g_es8323DaiData) != HDF_SUCCESS) {
         AUDIO_DRIVER_LOG_ERR("get port config info failed.");
         return HDF_FAILURE;
@@ -91,12 +62,14 @@ static int32_t Es8323DriverInit(struct HdfDeviceObject *device)
         AUDIO_DRIVER_LOG_ERR("set config info failed.");
         return HDF_FAILURE;
     }
-    ret = GetServiceName(device);
-    if (ret !=  HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("GetServiceName failed.");
+
+    ret = CodecGetServiceName(device, &(g_es8323Data.drvCodecName));
+    if (ret != HDF_SUCCESS) {
         return ret;
     }
+    AUDIO_DRIVER_LOG_INFO("g_es8323Data.drvCodecName = %s", g_es8323Data.drvCodecName);
 
+    OsalMutexInit(&g_es8323Data.mutex);
     ret = AudioRegisterCodec(device, &g_es8323Data, &g_es8323DaiData);
     if (ret !=  HDF_SUCCESS) {
         AUDIO_DRIVER_LOG_ERR("AudioRegisterCodec failed.");
@@ -106,12 +79,31 @@ static int32_t Es8323DriverInit(struct HdfDeviceObject *device)
     return HDF_SUCCESS;
 }
 
+static void Es8323DriverRelease(struct HdfDeviceObject *device)
+{
+    struct CodecHost *codecHost;
+    if (device == NULL) {
+        AUDIO_DRIVER_LOG_ERR("device is NULL.");
+        return;
+    }
+    OsalMutexDestroy(&g_es8323Data.mutex);
+    if (device->priv != NULL) {
+        OsalMemFree(device->priv);
+    }
+    codecHost = (struct CodecHost *)device->service;
+    if (codecHost == NULL) {
+        HDF_LOGE("CodecDriverRelease: codecHost is NULL");
+        return;
+    }
+    OsalMemFree(codecHost);
+}
+
 /* HdfDriverEntry definitions */
 struct HdfDriverEntry g_es8323DriverEntry = {
     .moduleVersion = 1,
     .moduleName = "CODEC_ES8323",
     .Bind = Es8323DriverBind,
     .Init = Es8323DriverInit,
-    .Release = NULL,
+    .Release = Es8323DriverRelease,
 };
 HDF_INIT(g_es8323DriverEntry);

@@ -105,10 +105,6 @@ if (product_name == "rk3588_mini_system") {
       "-Wno-error",
       "-Wno-unused-function",
       "-Wno-unused-parameter",
-      #"-DPREVIEW_PIXEL_FORMAT=V4L2_PIX_FMT_NV12", #jaxerr
-      #"-DCAPTURE_PIXEL_FORMAT=V4L2_PIX_FMT_NV12",
-      #"-DVIDEO_PIXEL_FORMAT=V4L2_PIX_FMT_NV12",
-      #"-DTEST_SENSOR_NAME=\"rkisp_v5\"",
     ]
   }
 

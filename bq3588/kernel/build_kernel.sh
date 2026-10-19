@@ -186,6 +186,7 @@ fi
 cp ${KERNEL_OBJ_TMP_PATH}/resource.img ${2}/resource.img
 cp ${3}/loader/MiniLoaderAll.bin ${2}/MiniLoaderAll.bin
 cp ${3}/loader/uboot.img ${2}/uboot.img
+cp ${3}/loader/misc.img ${2}/misc.img
 
 if [ "enable_absystem" == "${15}" ]; then
     cp ${3}/loader/parameter_ab.txt ${2}/parameter_ab.txt

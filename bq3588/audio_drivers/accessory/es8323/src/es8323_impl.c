@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HiHope Open Source Organization .
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
  *
  * HDF is dual licensed: you can use it either under the terms of
  * the GPL, or the BSD license, at your option.
@@ -16,6 +16,7 @@
 #include "i2c_if.h"
 #include "gpio_if.h"
 #include "linux/of_gpio.h"
+#include "audio_codec_base.h"
 #include "audio_stream_dispatch.h"
 
 
@@ -39,18 +40,19 @@
 #define ES8323_I2C_MSG_BUF_SIZE    (2)
 
 #define NUM_NEG_SIXTEEN            (-16)
-#define es8323_DEF_VOL	0x1b
-struct AudioRegCfgGroupNode **g_es8323RegCfgGroupNode = NULL;
-struct AudioKcontrol *g_es8323Controls = NULL;
-struct Es8323TransferData g_es8323TransferData;
 
-static char *g_audioControlsList[AUDIO_CTRL_LIST_MAX] = {
-    "Main Playback Volume", "Main Capture Volume",
-    "Playback Mute", "Capture Mute", "Mic Left Gain",
-    "Mic Right Gain", "External Codec Enable",
-    "Internally Codec Enable", "Render Channel Mode", "Captrue Channel Mode"
+static const struct AudioSapmRoute g_audioRoutes[] = {
+    { "SPKL", NULL, "SPKL PGA"},
+    { "HPL", NULL, "HPL PGA"},
+    { "HPR", NULL, "HPR PGA"},
+    { "SPKL PGA", "Speaker1 Switch", "DAC1"},
+    { "HPL PGA", "Headphone1 Switch", "DAC2"},
+
+    { "ADCL", NULL, "LPGA"},
+    { "ADCR", NULL, "RPGA"},
+    { "LPGA", "LPGA MIC Switch", "MIC1"},
+    { "RPGA", "RPGA MIC Switch", "MIC2"},
 };
-
 
 /*
  * release I2C object public function
@@ -243,11 +245,7 @@ static int32_t Es8323DaiParamsUpdate4Scene(struct AudioMixerControl *daiHwParams
 {
     int32_t ret;
     uint8_t i;
-    ret = (daiHwParamsRegCfgItem == NULL || transferData.daiHwParamsRegCfgItemCount == 0);
-    if (ret) {
-        AUDIO_DEVICE_LOG_ERR("Invaild params.");
-        return HDF_FAILURE;
-    }
+
     for (i = transferData.inputParamsBeginIndex; i <= transferData.inputParamsEndIndex; i++) {
         switch (i) {
             case ES8323_DHP_RENDER_FREQUENCY_INX:
@@ -276,22 +274,27 @@ static int32_t Es8323DaiParamsUpdate4Scene(struct AudioMixerControl *daiHwParams
 }
 
 // update external codec I2S frequency
-static int32_t Es8323DaiParamsUpdate(struct Es8323DaiParamsVal daiParamsVal, bool playback)
+static int32_t Es8323DaiParamsUpdate(const struct AudioCard *card,
+    struct Es8323DaiParamsVal daiParamsVal, bool playback)
 {
     int32_t ret;
     struct AudioMixerControl *daiHwParamsRegCfgItem = NULL;
     struct Es8323DaiHwParamsTransferData transferData;
-    ret = (g_es8323TransferData.codecRegCfgGroupNode == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_PATAM_GROUP] == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_PATAM_GROUP]->regCfgItem == NULL);
+
+    ret = (card == NULL || card->rtd == NULL || card->rtd->codec == NULL
+           || card->rtd->codec->devData == NULL || card->rtd->codec->devData->regConfig == NULL
+           || card->rtd->codec->devData->regConfig->audioRegParams[AUDIO_DAI_PATAM_GROUP]->regCfgItem == NULL);
     if (ret) {
-        AUDIO_DEVICE_LOG_ERR("g_es8323RegCfgGroupNode[AUDIO_DAI_PATAM_GROUP] is NULL.");
+        AUDIO_DEVICE_LOG_ERR("input param is NULL.");
         return HDF_FAILURE;
     }
-    daiHwParamsRegCfgItem =
-        g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_PATAM_GROUP]->regCfgItem;
-    transferData.daiHwParamsRegCfgItemCount =
-        g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_PATAM_GROUP]->itemNum;
+
+    daiHwParamsRegCfgItem = card->rtd->codec->devData->regConfig->audioRegParams[AUDIO_DAI_PATAM_GROUP]->regCfgItem;
+    if (daiHwParamsRegCfgItem == NULL) {
+        AUDIO_DEVICE_LOG_ERR("Register config item is NULL or count is 0.");
+        return HDF_FAILURE;
+    }
+
     if (!playback) { // capture
         transferData.inputParamsBeginIndex = ES8323_DHP_CAPTURE_FREQUENCY_INX;
         transferData.inputParamsEndIndex = ES8323_DHP_CAPTURE_FORMAT_INX;
@@ -351,74 +354,6 @@ static int32_t Es8323DeviceFrequencyParse(uint32_t rate, uint16_t *freq)
     return HDF_SUCCESS;
 }
 
-static int32_t Es8323DeviceCfgGet(struct CodecData *codecData,
-    struct Es8323TransferData *es8323TransferData)
-{
-    int32_t ret;
-    int32_t index;
-    int32_t audioCfgCtrlCount;
-    struct AudioControlConfig *ctlcfgItem;
-    ret = (codecData == NULL || codecData->regConfig == NULL || es8323TransferData == NULL);
-    if (ret) {
-        AUDIO_DRIVER_LOG_ERR("input para is NULL.");
-        return HDF_FAILURE;
-    }
-    g_es8323RegCfgGroupNode = codecData->regConfig->audioRegParams;
-    ret = (g_es8323RegCfgGroupNode[AUDIO_CTRL_CFG_GROUP] == NULL ||
-            g_es8323RegCfgGroupNode[AUDIO_CTRL_CFG_GROUP]->ctrlCfgItem == NULL ||
-            g_es8323RegCfgGroupNode[AUDIO_CTRL_PATAM_GROUP] == NULL ||
-            g_es8323RegCfgGroupNode[AUDIO_CTRL_PATAM_GROUP]->regCfgItem == NULL);
-    if (ret) {
-        AUDIO_DRIVER_LOG_ERR("parsing params is NULL.");
-        return HDF_FAILURE;
-    }
-    ctlcfgItem = g_es8323RegCfgGroupNode[AUDIO_CTRL_CFG_GROUP]->ctrlCfgItem;
-    audioCfgCtrlCount = g_es8323RegCfgGroupNode[AUDIO_CTRL_CFG_GROUP]->itemNum;
-    g_es8323Controls = (struct AudioKcontrol *)OsalMemCalloc(audioCfgCtrlCount * sizeof(struct AudioKcontrol));
-    es8323TransferData->codecRegCfgGroupNode = g_es8323RegCfgGroupNode;
-    es8323TransferData->codecCfgCtrlCount = audioCfgCtrlCount;
-    es8323TransferData->codecControls = g_es8323Controls;
-    for (index = 0; index < audioCfgCtrlCount; index++) {
-        g_es8323Controls[index].iface = ctlcfgItem[index].iface;
-        g_es8323Controls[index].name  = g_audioControlsList[ctlcfgItem[index].arrayIndex];
-        g_es8323Controls[index].Info  = AudioInfoCtrlOps;
-        g_es8323Controls[index].privateValue =
-            (unsigned long)&g_es8323RegCfgGroupNode[AUDIO_CTRL_PATAM_GROUP]->regCfgItem[index];
-        g_es8323Controls[index].Get = AudioCodecGetCtrlOps;
-        g_es8323Controls[index].Set = AudioCodecSetCtrlOps;
-    }
-    return HDF_SUCCESS;
-}
-
-/*
- * init control reg to default value
- */
-static int32_t Es8323DeviceCtrlRegInit(void)
-{
-    int32_t ret, i;
-    struct AudioAddrConfig *initCfg;
-    // Set codec control register(00h-14h) default value
-    ret = (g_es8323RegCfgGroupNode == NULL || g_es8323RegCfgGroupNode[AUDIO_INIT_GROUP] == NULL
-            || g_es8323RegCfgGroupNode[AUDIO_INIT_GROUP]->addrCfgItem == NULL);
-    if (ret) {
-        AUDIO_DRIVER_LOG_ERR("g_es8323RegCfgGroupNode[AUDIO_INIT_GROUP] is NULL.");
-        return HDF_FAILURE;
-    }
-    initCfg = g_es8323RegCfgGroupNode[AUDIO_INIT_GROUP]->addrCfgItem;
-    for (i = 0; i < g_es8323RegCfgGroupNode[AUDIO_INIT_GROUP]->itemNum; i++) {
-        AUDIO_DEVICE_LOG_DEBUG("i=%d, Addr = [0x%2x]", i, initCfg[i].addr);
-        ret = Es8323I2cReadWrite(&initCfg[i], 0);
-        if (ret != HDF_SUCCESS) {
-            AUDIO_DRIVER_LOG_ERR("Es8323I2cReadWrite(write) err, regAttr.regAddr: 0x%x.\n",
-                initCfg[i].addr);
-            return HDF_FAILURE;
-        }
-        OsalMSleep(ES8323_I2C_WAIT_TIMES);
-    }
-
-    return HDF_SUCCESS;
-}
-
 int32_t Es8323DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint32_t *val)
 {
     int32_t ret;
@@ -454,33 +389,6 @@ int32_t Es8323DeviceRegWrite(const struct CodecDevice *codec, uint32_t reg, uint
     return HDF_SUCCESS;
 }
 
-int32_t Es8323GetConfigInfo(const struct HdfDeviceObject *device, struct CodecData *codecData)
-{
-    if (device == NULL || codecData == NULL) {
-        AUDIO_DRIVER_LOG_ERR("param is null!");
-        return HDF_FAILURE;
-    }
-
-    if (codecData->regConfig != NULL) {
-        ADM_LOG_ERR("g_codecData regConfig  fail!");
-        return HDF_FAILURE;
-    }
-
-    codecData->regConfig = (struct AudioRegCfgData *)OsalMemCalloc(sizeof(*(codecData->regConfig)));
-    if (codecData->regConfig == NULL) {
-        ADM_LOG_ERR("malloc AudioRegCfgData fail!");
-        return HDF_FAILURE;
-    }
-
-    if (AudioGetRegConfig(device, codecData->regConfig) != HDF_SUCCESS) {
-        ADM_LOG_ERR("AudioGetRegConfig fail!");
-        return HDF_FAILURE;
-    }
-
-    return HDF_SUCCESS;
-}
-
-
 /* Original es8323 functions */
 static int32_t Es8323FormatParse(enum AudioFormat format, uint16_t *bitWidth)
 {
@@ -507,23 +415,29 @@ static int32_t Es8323FormatParse(enum AudioFormat format, uint16_t *bitWidth)
     return HDF_SUCCESS;
 }
 
-static int32_t Es8323WorkStatusEnable(void)
+static int32_t Es8323WorkStatusEnable(const struct AudioCard *card)
 {
     int32_t ret;
     uint8_t i;
     struct AudioMixerControl *daiStartupParamsRegCfgItem = NULL;
     uint8_t daiStartupParamsRegCfgItemCount;
-    ret = (g_es8323TransferData.codecRegCfgGroupNode == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_STARTUP_PATAM_GROUP] == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_STARTUP_PATAM_GROUP]->regCfgItem == NULL);
+
+    ret = (card == NULL || card->rtd == NULL || card->rtd->codec == NULL
+        || card->rtd->codec->devData == NULL || card->rtd->codec->devData->regConfig == NULL
+        || card->rtd->codec->devData->regConfig->audioRegParams[AUDIO_DAI_STARTUP_PATAM_GROUP]->regCfgItem == NULL);
     if (ret) {
-        AUDIO_DEVICE_LOG_ERR("g_es8323RegCfgGroupNode[AUDIO_DAI_STARTUP_PATAM_GROUP] is NULL.");
+        AUDIO_DEVICE_LOG_ERR("input param is NULL.");
         return HDF_FAILURE;
     }
-    daiStartupParamsRegCfgItem =
-        g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_STARTUP_PATAM_GROUP]->regCfgItem;
-    daiStartupParamsRegCfgItemCount =
-        g_es8323TransferData.codecRegCfgGroupNode[AUDIO_DAI_STARTUP_PATAM_GROUP]->itemNum;
+
+    daiStartupParamsRegCfgItem = card->rtd->codec->devData->regConfig
+        ->audioRegParams[AUDIO_DAI_STARTUP_PATAM_GROUP]->regCfgItem;
+    daiStartupParamsRegCfgItemCount = card->rtd->codec->devData->regConfig
+        ->audioRegParams[AUDIO_DAI_STARTUP_PATAM_GROUP]->itemNum;
+    if (daiStartupParamsRegCfgItem == NULL || daiStartupParamsRegCfgItemCount == 0) {
+        AUDIO_DEVICE_LOG_ERR("Register config item is NULL or count is 0.");
+        return HDF_FAILURE;
+    }
     for (i = 0; i < daiStartupParamsRegCfgItemCount; i++) {
         ret = Es8323RegBitsUpdate(daiStartupParamsRegCfgItem[i]);
         if (ret != HDF_SUCCESS) {
@@ -531,7 +445,6 @@ static int32_t Es8323WorkStatusEnable(void)
             return HDF_FAILURE;
         }
     }
-
     return HDF_SUCCESS;
 }
 
@@ -572,71 +485,54 @@ static int32_t Es8323HardwareRest(void)
     return HDF_SUCCESS;
 }
 
-/*
- * Es8323 Software Rest chip
- */
-static int32_t Es8323SoftwareRest(void)
-{
-    int32_t ret;
-    int i;
-    struct AudioAddrConfig *es8323RegRestAttr;
-    uint32_t restRegCfgItemCount;
-    ret = (g_es8323TransferData.codecRegCfgGroupNode == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_RSET_GROUP] == NULL
-            || g_es8323TransferData.codecRegCfgGroupNode[AUDIO_RSET_GROUP]->addrCfgItem == NULL);
-    if (ret) {
-        AUDIO_DEVICE_LOG_ERR("g_es8323RegCfgGroupNode[AUDIO_RSET_GROUP] is NULL.");
-        return HDF_FAILURE;
-    }
-    es8323RegRestAttr = g_es8323TransferData.codecRegCfgGroupNode[AUDIO_RSET_GROUP]->addrCfgItem;
-    restRegCfgItemCount = g_es8323TransferData.codecRegCfgGroupNode[AUDIO_RSET_GROUP]->itemNum;
-    for (i = 0; i < restRegCfgItemCount; i++) {
-        ret = Es8323I2cReadWrite(&es8323RegRestAttr[i], 0);
-        if (ret != HDF_SUCCESS) {
-            AUDIO_DEVICE_LOG_ERR("Es8323I2cReadWrite(write) failed, regAddr: 0x%02x.", es8323RegRestAttr[i].addr);
-            return HDF_FAILURE;
-        }
-        OsalMSleep(ES8323_I2C_WAIT_TIMES);
-    }
-
-    return HDF_SUCCESS;
-}
-
 int32_t Es8323DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *device)
 {
     int32_t ret;
-    if ((audioCard == NULL) || (device == NULL)) {
-        AUDIO_DEVICE_LOG_ERR("input para is NULL.");
+
+    if (audioCard == NULL || device == NULL || device->devData == NULL ||
+        device->devData->sapmComponents == NULL || device->devData->controls == NULL) {
+        AUDIO_DRIVER_LOG_ERR("input para is NULL.");
         return HDF_ERR_INVALID_OBJECT;
     }
-    ret = Es8323DeviceCfgGet(device->devData, &g_es8323TransferData);
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323DeviceCfgGet failed.");
-        return HDF_FAILURE;
-    }
+
     ret = Es8323HardwareRest();
     if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("Es8323HardwareRest failed.");
         return HDF_FAILURE;
     }
-    ret = Es8323SoftwareRest();
+
+    ret = CodecDeviceInitRegConfig(device);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323SoftwareRest failed.");
-        return HDF_FAILURE;
-    }
-    // Initial es8323 register
-    ret = Es8323DeviceCtrlRegInit();
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323DeviceRegInit failed.");
-        return HDF_FAILURE;
-    }
-    ret = AudioAddControls(audioCard, g_es8323TransferData.codecControls,
-        g_es8323TransferData.codecCfgCtrlCount);
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("AudioAddControls failed.");
+        AUDIO_DEVICE_LOG_ERR("CodecDeviceInitRegConfig failed.");
         return HDF_FAILURE;
     }
 
+    if (AudioAddControls(audioCard, device->devData->controls, device->devData->numControls) != HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("add controls failed.");
+        return HDF_FAILURE;
+    }
+
+    if (AudioSapmNewComponents(audioCard, device->devData->sapmComponents,
+        device->devData->numSapmComponent) != HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("new components failed.");
+        return HDF_FAILURE;
+    }
+
+    if (AudioSapmAddRoutes(audioCard, g_audioRoutes, HDF_ARRAY_SIZE(g_audioRoutes)) != HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("add route failed.");
+        return HDF_FAILURE;
+    }
+
+    if (AudioSapmNewControls(audioCard) != HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("add sapm controls failed.");
+        return HDF_FAILURE;
+    }
+
+    if (AudioSapmSleep(audioCard) != HDF_SUCCESS) {
+        AUDIO_DRIVER_LOG_ERR("add sapm sleep modular failed.");
+        return HDF_FAILURE;
+    }
+    AUDIO_DEVICE_LOG_DEBUG("success.");
     return HDF_SUCCESS;
 }
 
@@ -661,7 +557,7 @@ int32_t Es8323DaiStartup(const struct AudioCard *card, const struct DaiDevice *d
     if (priv == NULL) {
         AUDIO_DEVICE_LOG_ERR("priv is NULL, default use mic device!");
     }
-    ret = Es8323WorkStatusEnable();
+    ret = Es8323WorkStatusEnable(card);
     if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("Es8323WorkStatusEnable failed.");
         return HDF_FAILURE;
@@ -703,7 +599,7 @@ int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
     daiParamsVal.formatVal = bitWidth;
     daiParamsVal.channelVal = param->channels;
     playback = (param->streamType == AUDIO_RENDER_STREAM) ? true : false;
-    ret = Es8323DaiParamsUpdate(daiParamsVal, playback);
+    ret = Es8323DaiParamsUpdate(card, daiParamsVal, playback);
     if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("Es8323DaiParamsUpdate failed.");
         return HDF_FAILURE;

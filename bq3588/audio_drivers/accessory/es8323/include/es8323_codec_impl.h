@@ -48,9 +48,6 @@ enum Es8323DaiHwParamsIndex {
 struct Es8323DaiHwParamsTransferData {
     uint8_t inputParamsBeginIndex;
     uint8_t inputParamsEndIndex;
-    uint8_t otherParamsBeginIndex;
-    uint8_t otherParamsEndIndex;
-    uint8_t daiHwParamsRegCfgItemCount;
 };
 
 /* Original accessory base declare */
@@ -98,7 +95,6 @@ struct Es8323DaiParamsVal {
 
 int32_t Es8323DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint32_t *value);
 int32_t Es8323DeviceRegWrite(const struct CodecDevice *codec, uint32_t reg, uint32_t value);
-int32_t Es8323GetConfigInfo(const struct HdfDeviceObject *device, struct CodecData *codecData);
 
 /* Original es8323 declare */
 int32_t Es8323DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *device);

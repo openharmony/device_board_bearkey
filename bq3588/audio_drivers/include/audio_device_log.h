@@ -16,7 +16,7 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 // 1 is on; 0 is off
-#define AUDIO_DEVICE_DEBUG_ON 0
+#define AUDIO_DEVICE_DEBUG_ON 1
 
 #define AUDIO_DEVICE_LOG_ERR(fmt, arg...) do { \
     HDF_LOGE("[%s][line:%d]: " fmt, __func__, __LINE__, ##arg); \
