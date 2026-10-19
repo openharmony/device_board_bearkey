@@ -131,7 +131,7 @@ pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
 1.Download via repo + ssh (public key registration required, refer to Gitee Help Center):
 
 ```
-repo init -u git@gitee.com:openharmony/manifest.git -b master --no-repo-verify
+repo init -u git@gitcode.com:openharmony/manifest.git -b master --no-repo-verify
 
 repo sync -c
 
@@ -141,7 +141,7 @@ repo forall -c 'git lfs pull'
 2.Download via repo + https:
 
 ```
-repo init -u https://gitee.com/openharmony/manifest.git -b master --no-repo-verify
+repo init -u https://gitcode.com/openharmony/manifest.git -b master --no-repo-verify
 
 repo sync -c
 
