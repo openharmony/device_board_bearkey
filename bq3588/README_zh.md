@@ -135,7 +135,7 @@ pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
 1） 通过repo + ssh 下载（需注册公钥，请参考码云帮助中心）。
 
 ```
-repo init -u git@gitee.com:openharmony/manifest.git -b master --no-repo-verify
+repo init -u git@gitcode.com:openharmony/manifest.git -b master --no-repo-verify
 
 repo sync -c
 
@@ -145,7 +145,7 @@ repo forall -c 'git lfs pull'
 2） 通过repo + https 下载。
 
 ```
-repo init -u https://gitee.com/openharmony/manifest.git -b master --no-repo-verify
+repo init -u https://gitcode.com/openharmony/manifest.git -b master --no-repo-verify
 
 repo sync -c
 
@@ -196,4 +196,8 @@ post_process
 
 **七、联系**
 
-[厦门贝启科技有限公司-Bearkey-官网](https://www.bearkey.com.cn/product/RK3588工业控制主板.html?type=OpenHarmony&name=RK3588 工业控制主板&id=26)
+[厦门贝启科技有限公司-Bearkey-官网](https://www.bearkey.com.cn/product/RK3588工业主板.html?type=OpenHarmony&name=RK3588工业主板&id=26)
+
+
+
+
