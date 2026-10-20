@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HiHope Open Source Organization .
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd
  *
  * HDF is dual licensed: you can use it either under the terms of
  * the GPL, or the BSD license, at your option.
@@ -34,26 +34,26 @@
 
 #define HDF_LOG_TAG rk3588_dai_ops
 
-
-void *g_regDaiBase = NULL;
-static const char *g_i2s1DtsTreePath = "/i2s@fe470000";
-static struct platform_device *g_platformDev;
-
-struct platform_device *getPlatformDev(void)
+static struct platform_device *GetPlatformDev(const struct DaiDevice *dai)
 {
-    struct device_node *dmaOfNode;
-    dmaOfNode = of_find_node_by_path(g_i2s1DtsTreePath);
+    struct device_node *dmaOfNode = NULL;
+
+    if (dai == NULL || dai->devData == NULL || dai->devData->regConfig == NULL) {
+        AUDIO_DEVICE_LOG_ERR("dai is null");
+        return NULL;
+    }
+
+    dmaOfNode = of_find_node_by_path(dai->devData->regConfig->audioIdInfo.chipName);
     if (dmaOfNode == NULL) {
         AUDIO_DEVICE_LOG_ERR("get device node failed.");
         return NULL;
     }
-    g_platformDev = of_find_device_by_node(dmaOfNode);
-    return g_platformDev;
+    return of_find_device_by_node(dmaOfNode);
 }
 
 int32_t Rk3588DeviceReadReg(const struct DaiDevice *dai, uint32_t reg, uint32_t *val)
 {
-    struct platform_device *platformdev = getPlatformDev();
+    struct platform_device *platformdev = GetPlatformDev(dai);
     struct rk3588_i2s_tdm_dev *i2sTdm = NULL;
 
     if (platformdev == NULL) {
@@ -77,7 +77,7 @@ int32_t Rk3588DeviceReadReg(const struct DaiDevice *dai, uint32_t reg, uint32_t 
 
 int32_t Rk3588DeviceWriteReg(const struct DaiDevice *dai, uint32_t reg, uint32_t value)
 {
-    struct platform_device *platformdev = getPlatformDev();
+    struct platform_device *platformdev = GetPlatformDev(dai);
     struct rk3588_i2s_tdm_dev *i2sTdm = NULL;
     (void)dai;
 
@@ -101,7 +101,8 @@ int32_t Rk3588DeviceWriteReg(const struct DaiDevice *dai, uint32_t reg, uint32_t
 
 int32_t Rk3588DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *dai)
 {
-    struct DaiData *data;
+    struct DaiData *data = NULL;
+    (void)card;
 
     if (dai == NULL || dai->device == NULL || dai->devDaiName == NULL) {
         AUDIO_DEVICE_LOG_ERR("input para is NULL.");
@@ -116,16 +117,6 @@ int32_t Rk3588DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *dai)
         AUDIO_DEVICE_LOG_ERR("set config info fail.");
         return HDF_FAILURE;
     }
-
-    if (g_regDaiBase == NULL) {
-        g_regDaiBase = OsalIoRemap(data->regConfig->audioIdInfo.chipIdRegister,
-            data->regConfig->audioIdInfo.chipIdSize);
-        if (g_regDaiBase == NULL) {
-            AUDIO_DEVICE_LOG_ERR("OsalIoRemap fail.");
-            return HDF_FAILURE;
-        }
-    }
-    data->regVirtualAddr = (uintptr_t)g_regDaiBase;
 
     if (dai->devData->daiInitFlag == true) {
         AUDIO_DRIVER_LOG_INFO("dai init complete!");
@@ -357,17 +348,24 @@ int32_t Rk3588DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
 {
     int ret;
     uint32_t bitWidth;
+    struct DaiDevice *dai = NULL;
     struct DaiData *data = DaiDataFromCard(card);
-    struct platform_device *platformdev = getPlatformDev();
+    struct platform_device *platformdev = NULL;
     struct rk3588_i2s_tdm_dev *i2sTdm = NULL;
 
-    if (data == NULL || platformdev == NULL) {
-        AUDIO_DEVICE_LOG_ERR("platformHost is nullptr.");
-        return HDF_FAILURE;
-    }
-    if (param == NULL || param->cardServiceName == NULL) {
+    if (card == NULL || card->rtd == NULL || param == NULL || param->cardServiceName == NULL) {
         AUDIO_DEVICE_LOG_ERR("input para is NULL.");
         return HDF_ERR_INVALID_PARAM;
+    }
+    if (data == NULL) {
+        AUDIO_DEVICE_LOG_ERR("data is nullptr.");
+        return HDF_FAILURE;
+    }
+    dai = card->rtd->cpuDai;
+    platformdev = GetPlatformDev(dai);
+    if (platformdev == NULL) {
+        AUDIO_DEVICE_LOG_ERR("platformdev is NULL.");
+        return HDF_FAILURE;
     }
     data->pcmInfo.channels = param->channels;
 
@@ -381,6 +379,10 @@ int32_t Rk3588DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
     data->pcmInfo.streamType = param->streamType;
 
     i2sTdm = dev_get_drvdata(&platformdev->dev);
+    if (i2sTdm == NULL) {
+        AUDIO_DEVICE_LOG_ERR("i2sTdm is null");
+        return HDF_FAILURE;
+    }
     ret = RK3588I2sTdmSetSysClk(i2sTdm, param);
     if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("RK3588I2sTdmSetSysClk error");
@@ -593,7 +595,7 @@ static int32_t Rk3588TxAndRxSetReg(struct rk3588_i2s_tdm_dev *i2sTdm,
 /* normal scene */
 int32_t Rk3588NormalTrigger(const struct AudioCard *card, int cmd, const struct DaiDevice *device)
 {
-    struct platform_device *platformdev = getPlatformDev();
+    struct platform_device *platformdev = GetPlatformDev(device);
     struct rk3588_i2s_tdm_dev *i2sTdm = NULL;
     int32_t triggerFlag = GetTriggeredFlag(cmd);
     enum AudioStreamType streamType = GetStreamType(cmd);
