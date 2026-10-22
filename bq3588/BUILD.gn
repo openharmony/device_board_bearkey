@@ -22,18 +22,6 @@ group("bq3588_group") {
     "kernel:kernel",
     "updater:updater_files",
     "ws73e:ws73e_driver",
-    "//device/soc/rockchip/rk3588/hardware:hardware_group",
+    "camera/vdi_impl/v4l2:camera_board_vdi_impl",
   ]
-  if (is_support_graphic) {
-    deps += [
-      "//device/soc/rockchip/rk3588/hardware/display:display_buffer_model",
-      "//device/soc/rockchip/rk3588/hardware/display:display_composer_model",
-    ]
-  }
-  if (is_support_codec) {
-    deps += [
-      "//device/soc/rockchip/rk3588/hardware/codec:codec_oem_interface",
-      "//device/soc/rockchip/rk3588/hardware/omx_il:lib_omx",
-    ]
-  }
 }
