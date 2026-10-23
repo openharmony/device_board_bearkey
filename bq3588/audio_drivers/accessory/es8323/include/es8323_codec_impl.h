@@ -173,8 +173,6 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
 #define ES8323_ADC_MUTE         ES8323_ADCCONTROL7
 #define ES8323_DAC_MUTE         ES8323_DACCONTROL3
 
-
-
 #define ES8323_IFACE            ES8323_MASTERMODE
 
 #define ES8323_ADC_IFACE        ES8323_ADCCONTROL4

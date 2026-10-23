@@ -101,7 +101,6 @@ extern "C" {
 #define I2S_CLKDIV_RXM_MASK	(0xff << I2S_CLKDIV_RXM_SHIFT)
 
 
-
 /* channel select */
 #define I2S_CSR_SHIFT	15
 #define I2S_CHN_2	(0 << I2S_CSR_SHIFT)
@@ -133,30 +132,30 @@ extern "C" {
 #define CLK_PPM_MIN				(-1000)
 #define CLK_PPM_MAX				(1000)
 struct txrx_config {
-	u32 addr;
-	u32 reg;
-	u32 txonly;
-	u32 rxonly;
+    u32 addr;
+    u32 reg;
+    u32 txonly;
+    u32 rxonly;
 };
 
 struct rk_i2s_soc_data {
-	u32 softrst_offset;
-	u32 grf_reg_offset;
-	u32 grf_shift;
-	int config_count;
-	const struct txrx_config *configs;
-	int (*init)(struct device *dev, u32 addr);
+    u32 softrst_offset;
+    u32 grf_reg_offset;
+    u32 grf_shift;
+    int config_count;
+    const struct txrx_config *configs;
+    int (*init)(struct device *dev, u32 addr);
 };
 
 struct rk3588_i2s_tdm_dev {
-	struct device *dev;
-	struct clk *hclk;
-	struct clk *mclk_tx;
-	struct clk *mclk_rx;
+    struct device *dev;
+    struct clk *hclk;
+    struct clk *mclk_tx;
+    struct clk *mclk_rx;
 	/* The mclk_tx_src is parent of mclk_tx */
-	struct clk *mclk_tx_src;
+    struct clk *mclk_tx_src;
 	/* The mclk_rx_src is parent of mclk_rx */
-	struct clk *mclk_rx_src;
+    struct clk *mclk_rx_src;
 	/*
 	 * The mclk_root0 and mclk_root1 are root parent and supplies for
 	 * the different FS.
@@ -165,37 +164,37 @@ struct rk3588_i2s_tdm_dev {
 	 * mclk_root0 is VPLL0, used for FS=48000Hz
 	 * mclk_root0 is VPLL1, used for FS=44100Hz
 	 */
-	struct clk *mclk_root0;
-	struct clk *mclk_root1;
-	struct regmap *regmap;
-	struct regmap *grf;
-	struct snd_dmaengine_dai_dma_data capture_dma_data;
-	struct snd_dmaengine_dai_dma_data playback_dma_data;
-	struct reset_control *tx_reset;
-	struct reset_control *rx_reset;
-	const struct rk_i2s_soc_data *soc_data;
-	void __iomem *cru_base;
-	bool is_master_mode;
-	bool io_multiplex;
-	bool mclk_calibrate;
-	bool tdm_mode;
-	bool tdm_fsync_half_frame;
-	unsigned int mclk_rx_freq;
-	unsigned int mclk_tx_freq;
-	unsigned int mclk_root0_freq;
-	unsigned int mclk_root1_freq;
-	unsigned int mclk_root0_initial_freq;
-	unsigned int mclk_root1_initial_freq;
-	unsigned int bclk_fs;
-	unsigned int clk_trcm;
-	unsigned int i2s_sdis[CH_GRP_MAX];
-	unsigned int i2s_sdos[CH_GRP_MAX];
-	int clk_ppm;
-	int tx_reset_id;
-	int rx_reset_id;
-	atomic_t refcount;
-	spinlock_t lock; /* xfer lock */
-	bool txStart;
+    struct clk *mclk_root0;
+    struct clk *mclk_root1;
+    struct regmap *regmap;
+    struct regmap *grf;
+    struct snd_dmaengine_dai_dma_data capture_dma_data;
+    struct snd_dmaengine_dai_dma_data playback_dma_data;
+    struct reset_control *tx_reset;
+    struct reset_control *rx_reset;
+    const struct rk_i2s_soc_data *soc_data;
+    void __iomem *cru_base;
+    bool is_master_mode;
+    bool io_multiplex;
+    bool mclk_calibrate;
+    bool tdm_mode;
+    bool tdm_fsync_half_frame;
+    unsigned int mclk_rx_freq;
+    unsigned int mclk_tx_freq;
+    unsigned int mclk_root0_freq;
+    unsigned int mclk_root1_freq;
+    unsigned int mclk_root0_initial_freq;
+    unsigned int mclk_root1_initial_freq;
+    unsigned int bclk_fs;
+    unsigned int clk_trcm;
+    unsigned int i2s_sdis[CH_GRP_MAX];
+    unsigned int i2s_sdos[CH_GRP_MAX];
+    int clk_ppm;
+    int tx_reset_id;
+    int rx_reset_id;
+    atomic_t refcount;
+    spinlock_t lock; /* xfer lock */
+    bool txStart;
     bool rxStart;
 };
 #ifdef __cplusplus
