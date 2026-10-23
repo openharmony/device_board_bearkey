@@ -1,4 +1,4 @@
-# 【Development Board Name】Bearkey BQ3588HM Development Kit
+# Bearkey BQ3588HM Development Kit
 
 **Overview**
 
@@ -15,13 +15,13 @@ The appearance of the Bearkey BQ3588HM Development Kit is shown in Figure 1:
 
 **I. Development Board Details**
 
-**1、 Front Interface Schematic of Bearkey BQ3588HM Development Kit**
+**1. Front Interface Schematic of Bearkey BQ3588HM Development Kit**
 
 ![Front Interface Schematic of Bearkey BQ3588HM Development Kit](../picture/front.png)
 
     Figure 2: Front Interface Schematic of Bearkey BQ3588HM Development Kit
 
-2、**Reverse Interface Schematic of Bearkey BQ3588HM Development Kit**
+2.**Reverse Interface Schematic of Bearkey BQ3588HM Development Kit**
 
 ![Reverse Interface Schematic of Bearkey BQ3588HM Development Kit](../picture/back.png)
 
@@ -51,11 +51,11 @@ The interface specification description of the Bearkey BQ3588HM Development Kit 
 | Indicators                                                              | 1 x SYS LED、1 x PWR LED                                                                                                                                                         |
 | Debugging                                                               | 1x Debug Serial Port                                                                                                                                                             |
 | Buttons                                                                 | 1x Vol+/Recovery Button, 1 x Vol-, 1x Reset Button, 1x Power Key, and LED Socket (4Pins)                                                                                         |
-| Display Interfaces                                                      | 1 x HDMI OUT (8K@60Hz), 1 x EDP (4K@60Hz), 2 x 4-lane MIPI_DSI, supporting TYPE-C video output)                                                                                  |
+| Display Interfaces                                                      | 1 x HDMI OUT (8K@60Hz), 1 x EDP (4K@60Hz), 2 x 4-lane MIPI_DSI, supporting TYPE-C video output                                                                                  |
 | Camera Interfaces                                                       | 2 x MIPI_CSI (4LANE), FPC socket; the supporting OV13855 module can reach a maximum resolution of 4224×3136                                                                     |
 | USB                                                                     | 1 x TYPE-C USB3.0, 1 x USB3.0 TYPE-A HOST, 2 x USB2.0 HOST, supporting USB cameras                                                                                               |
 | Serial Ports                                                            | 1 x RS232、1 xRS485、1 x CAN，2 x TTL UART                                                                                                                                       |
-| GPIO Interfaces                                                         | 14 x GPIO（including PWM/I2C/SPI）)                                                                                                                                              |
+| GPIO Interfaces                                                         | 14 x GPIO (including PWM/I2C/SPI)                                                                                                                                              |
 | G-sensor                                                                | 1x G-sensor                                                                                                                                                                      |
 | Buzzer                                                                  | 1xBuzzer                                                                                                                                                                         |
 | Combo + LAN                                                             | LAN 1 / SFP + LAN 2                                                                                                                                                              |
@@ -160,7 +160,7 @@ The downloaded prebuilts binaries are stored in the OpenHarmony_2.0_canary_prebu
 
 **VI. Compilation and Debugging**
 
-**1、Compilation**
+**1. Compilation**
 
 Perform the following operations in the Linux environment:
 
@@ -192,4 +192,4 @@ For the burning instructions, refer to "Development Tool User Manual_v1.0.pdf" i
 
 **VII. Contact**
 
-[Xiamen Bearkey Technology Co., Ltd. - Bearkey - Official Website](https://www.bearkey.com.cn/product/RK3588工业控制主板.html?type=OpenHarmony&name=RK3588 工业控制主板 & id=26)
+[Xiamen Bearkey Technology Co., Ltd. - Bearkey - Official Website](https://www.bearkey.com.cn/product/RK3588工业主板.html?type=OpenHarmony&name=RK3588工业主板&id=26)

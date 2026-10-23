@@ -1,4 +1,4 @@
-# 【开发板名称】贝启BQ3588HM开发套件
+# 贝启BQ3588HM开发套件
 
 **简介**
 
@@ -53,11 +53,11 @@ Rockchip RK3588集成四核Cortex-A76和四核Cortex-A55核心，主频高达2.4
 | 指示灯                           | 1 x SYS LED、1 x PWR LED                                                                                                            |
 | 调试                             | 1x 调试串口                                                                                                                         |
 | 按键                             | 1x Vol+/Recovery按键、1 x VoL-、1x Reset按键、1xPower key及LED座子(4Pins)                                                           |
-| 显示接口                         | 1 x HDMI OUT（8K@60Hz）、1 x EDP（4K@60Hz）、2 x  4-lane MIPI_DSI、支持TYPEC视频输出）                                              |
+| 显示接口                         | 1 x HDMI OUT（8K@60Hz）、1 x EDP（4K@60Hz）、2 x  4-lane MIPI_DSI、支持TYPEC视频输出                                              |
 | 摄像头接口                       | 2 x MIPI_CSI（4LANE），FPC座子，配套OV13855模组最大分辨率可达 4224×3136                                                            |
 | USB                              | 1 x TYPE-C USB3.0、1 x USB3.0 TYPE-A HOST、2 x USB2.0 HOST，支持USB摄像头                                                           |
 | 串口                             | 1 x RS232、1 xRS485、1 x CAN，2 x TTL UART                                                                                          |
-| GPIO接口                         | 14 x GPIO（含PWM/I2C/SPI）)                                                                                                         |
+| GPIO接口                         | 14 x GPIO（含PWM/I2C/SPI）                                                                                                         |
 | G-sensor                         | 1x G-sensor                                                                                                                         |
 | 蜂鸣器                           | 1x蜂鸣器                                                                                                                            |
 | Combo + LAN                      | LAN 1 / SFP + LAN 2                                                                                                                 |
@@ -170,7 +170,7 @@ bash build/prebuilts_download.sh
 
 1） 进入源码根目录，执行如下命令进行版本编译。
 
-./build.sh -p bq3588 开始编译
+./build.sh -p bq3588  # 开始编译
 
 2） 检查编译结果。编译完成后，log中显示如下：
 
