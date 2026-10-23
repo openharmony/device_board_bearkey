@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 
 ohos_prebuilt_etc("ws73_cfg.ini") {
   source = "ws73_cfg.ini"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "system" ]
   relative_install_dir = "../etc"
   install_enable = true
@@ -23,7 +23,7 @@ ohos_prebuilt_etc("ws73_cfg.ini") {
 
 ohos_prebuilt_etc("ws73") {
   source = "ws73"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "system" ]
   relative_install_dir = "../etc"
   install_enable = true
@@ -31,7 +31,7 @@ ohos_prebuilt_etc("ws73") {
 
 ohos_prebuilt_etc("sle_client_sample") {
   source = "sle_client_sample"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "system" ]
   relative_install_dir = "../bin"
   install_enable = true
@@ -39,7 +39,7 @@ ohos_prebuilt_etc("sle_client_sample") {
 
 ohos_prebuilt_etc("sle_server_sample") {
   source = "sle_server_sample"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "system" ]
   relative_install_dir = "../bin"
   install_enable = true
@@ -47,7 +47,7 @@ ohos_prebuilt_etc("sle_server_sample") {
 
 ohos_prebuilt_etc("plat_soc.ko") {
   source = "plat_soc.ko"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "vendor" ]
   relative_install_dir = "."
   install_enable = true
@@ -55,7 +55,7 @@ ohos_prebuilt_etc("plat_soc.ko") {
 
 ohos_prebuilt_etc("sle_soc.ko") {
   source = "sle_soc.ko"
-  part_name = "rockchip_products"
+  part_name = "device_bq3588"
   install_images = [ "vendor" ]
   relative_install_dir = "."
   install_enable = true

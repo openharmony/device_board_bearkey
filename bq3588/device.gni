@@ -22,25 +22,7 @@ if (!defined(defines)) {
 }
 
 defines += [ "PRODUCT_BQ3588" ]
-declare_args() {
-  is_support_boot_animation = true
-  is_support_graphic = true
-  is_support_codec = true
-}
-
-if (!defined(global_parts_info.graphic_graphic_2d)) {
-  is_support_graphic = false
-}
-
-if (!defined(global_parts_info.hdf_drivers_peripheral_codec)) {
-  is_support_codec = false
-}
 
 product_config_path = "//vendor/${product_company}/${product_name}"
 board_camera_path =
     "//device/board/${product_company}/${device_name}/camera/vdi_impl/v4l2"
-is_support_v4l2 = true
-if (is_support_v4l2) {
-  is_support_mpi = false
-  defines += [ "SUPPORT_V4L2" ]
-}

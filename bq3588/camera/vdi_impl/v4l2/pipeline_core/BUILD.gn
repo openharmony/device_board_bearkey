@@ -75,8 +75,6 @@ ohos_shared_library("camera_pipeline_core") {
     "$board_camera_path:config.c",
     "$board_camera_path:params.c",
     "$board_camera_path/device_manager:camera_device_manager",
-    "//device/soc/rockchip/rk3588/hardware/mpp:libmpp",
-    "//device/soc/rockchip/rk3588/hardware/rga:librga",
     "//third_party/libjpeg-turbo:turbojpeg",
   ]
 
@@ -90,6 +88,8 @@ ohos_shared_library("camera_pipeline_core") {
       "drivers_peripheral_camera:peripheral_camera_v4l2_adapter",
       "hdf_core:libhdf_utils",
       "hilog:libhilog",
+      "soc_rk3588:libmpp",
+      "soc_rk3588:librga",
     ]
   } else {
     external_deps = [ "hilog:libhilog" ]
@@ -105,8 +105,8 @@ ohos_shared_library("camera_pipeline_core") {
 
   public_configs = [ ":pipe_config" ]
   install_images = [ chipset_base_dir ]
-  subsystem_name = "rockchip_products"
-  part_name = "rockchip_products"
+  subsystem_name = "device_bq3588"
+  part_name = "device_bq3588"
 }
 
 config("example_config") {
@@ -129,6 +129,6 @@ ohos_shared_library("camera_ipp_algo_example") {
   external_deps = [ "c_utils:utils" ]
   public_configs = [ ":example_config" ]
   install_images = [ chipset_base_dir ]
-  subsystem_name = "rockchip_products"
-  part_name = "rockchip_products"
+  subsystem_name = "device_bq3588"
+  part_name = "device_bq3588"
 }

@@ -1,0 +1,49 @@
+{
+    "name": "@ohos/device_bq3588",
+    "description": "device board",
+    "version": 3.2,
+    "license": "Apache License 2.0",
+    "publishAs": "code-segment",
+    "segment": {
+      "destPath": "device/board/bearkey/bq3588"
+    },
+    "dirs": {},
+    "scripts": {},
+    "component": {
+      "name": "device_bq3588",
+      "subsystem": "device_bq3588",
+      "syscap": [],
+      "features": [
+      ],
+      "adapted_system_type": [ "standard" ],
+      "hisysevent_config": [],
+      "rom": "",
+      "ram": "",
+      "deps": {
+        "components": [
+          "c_utils",
+          "drivers_peripheral_camera",
+          "graphic_surface",
+          "hdf_core",
+          "hilog",
+          "ipc",
+          "hitrace",
+          "hisysevent",
+          "drivers_interface_camera",
+          "drivers_interface_display",
+          "soc_rk3588"
+        ],
+        "third_party": [
+          "libjpeg-turbo"
+        ]
+      },
+      "build": {
+        "sub_component": [
+            "//device/board/bearkey/bq3588:bq3588_group"
+        ],
+      "inner_kits":[],
+      "test": []
+      }
+    }
+  }
+  

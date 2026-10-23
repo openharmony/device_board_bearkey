@@ -77,7 +77,7 @@ static bool g_checkIfNeedDoTransform(std::shared_ptr<IBuffer>& buffer)
 
 static void TransformToVirAddress(std::shared_ptr<IBuffer>& buffer, int32_t srcRkFmt, int32_t dstRkFmt)
 {
-    auto tmpBuffer = malloc(buffer->GetSize());
+    auto [tmpBuffer, dmaFd] = buffer->AllocateDmaBuffer(buffer->GetSize());
     if (tmpBuffer == nullptr) {
         CAMERA_LOGE("TransformToVirAddress malloc tmpBuffer fail");
         return;
@@ -104,7 +104,8 @@ static void TransformToVirAddress(std::shared_ptr<IBuffer>& buffer, int32_t srcR
 
     rkRga.RkRgaBlit(&src, &dst, NULL);
     rkRga.RkRgaFlush();
-    free(tmpBuffer);
+    munmap(tmpBuffer, buffer->GetSize());
+    close(dmaFd);
     buffer->SetIsValidDataInSurfaceBuffer(false);
 }
 static void TransformToFd(std::shared_ptr<IBuffer>& buffer, int32_t srcRkFmt, int32_t dstRkFmt)
