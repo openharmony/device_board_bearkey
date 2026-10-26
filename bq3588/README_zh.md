@@ -1,6 +1,6 @@
 # 贝启BQ3588HM开发套件
 
-**简介**
+## 简介
 
 贝启BQ3588HM开发套件，型号BQ3588HM是基于Rockchip RK3588，集成四核Cortex-A76和四核Cortex-A55核心，主频2.4GHz，配备Mali-G610 GPU及2D加速引擎，支持多种图形标准，实现流畅视觉体验，支持8K视频解码和60Hz刷新率输出，集 成 6TOPS 算 力NPU。支持Transformer架构下超大规模参数模型的私有化部署。支 持 深 度学 习 框 架:Caffe、Pytorch、OnnxNN等。贝启RK3588开发板支持蓝牙、Wi-Fi、星闪、北斗GPS定位，拥有丰富的扩展接口，支持多种音视频输入输出接口，包括MIPI显示、EDP显示、HDMI显示，双路MIPI摄像头\USB摄像头，支持耳机、麦克风座子、喇叭座子；配置双千兆自适应RJ45以太网口，支持扩展模组4G/5G上网，配置8GB内存和64GB存储，支持TF卡、固态硬盘\SATA硬盘扩展，具备丰富外部接口与通信方式，包括RS485、RS232、DI、DO、USB等。
 
@@ -14,21 +14,21 @@
 
     图1：贝启BQ3588HM开发套件外观图
 
-**一、开发板详情**
+## 开发板详情
 
-**1、贝启BQ3588HM开发套件正面接口示意图**
+### 贝启BQ3588HM开发套件正面接口示意图
 
 ![bq3588接口说明_01](../picture/front.png)
 
     图2：贝启BQ3588HM开发套件正面接口示意图
 
-2、**贝启BQ3588HM开发套件反面接口示意图**
+### 贝启BQ3588HM开发套件反面接口示意图
 
 ![bq3588接口说明_02](../picture/back.png)
 
     图3：贝启BQ3588HM开发套件反面接口示意图
 
-**二、开发板规格**
+## 开发板规格
 
 Rockchip RK3588集成四核Cortex-A76和四核Cortex-A55核心，主频高达2.4GHz，可广泛应用于嵌入式人工智能领域。
 
@@ -76,21 +76,21 @@ Rockchip RK3588集成四核Cortex-A76和四核Cortex-A55核心，主频高达2.4
 
     表2 贝启BQ3588HM开发套件接口规格说明
 
-**三、开发板配件安装：**
+## 开发板配件安装
 
-**1、摄像头模组安装如下图：**
+### 摄像头模组安装
 
 ![bq3588配件安装_01](../picture/camera.jpg)
 
     图4：贝启BQ3588HM开发套件camera安装图
 
-**四、开发板应用场景**
+## 开发板应用场景
 
 贝启BQ3588HM开发套件适用于智能NVR、云终端、物联网网关、工业控制、信息发布终端、多媒体广告机等场景，亦可广泛应用于嵌入式人工智能领域。
 
-**五、搭建开发环境**
+## 搭建开发环境
 
-**1、安装依赖工具**
+### 安装依赖工具
 
 安装命令如下：
 
@@ -101,9 +101,9 @@ sudo apt-get update && sudo apt-get install git ssh make gcc libssl-dev liblz4-t
 **说明：**
 以上安装命令适用于Ubuntu22.04，其它版本请根据安装包名称采用对应的安装命令。
 
-**2、获取标准系统源码**
+### 获取标准系统源码
 
-**前提条件**
+#### 前提条件
 
 1）注册码云gitee账号。
 
@@ -130,7 +130,7 @@ chmod a+x /usr/local/bin/repo
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
 ```
 
-**获取源码操作步骤**
+#### 获取源码操作步骤
 
 1） 通过repo + ssh 下载（需注册公钥，请参考码云帮助中心）。
 
@@ -152,7 +152,7 @@ repo sync -c
 repo forall -c 'git lfs pull'
 ```
 
-**执行prebuilts**
+### 执行prebuilts
 
 在源码根目录下执行脚本，安装编译器及二进制工具。
 
@@ -162,9 +162,9 @@ bash build/prebuilts_download.sh
 
 下载的prebuilts二进制默认存放在与OpenHarmony同目录下的OpenHarmony_2.0_canary_prebuilts下。
 
-**六、编译调试**
+## 编译调试
 
-**1、编译**
+### 编译
 
 在Linux环境进行如下操作:
 
@@ -186,7 +186,7 @@ post_process
 
 3） 编译源码完成，请进行镜像烧录。
 
-**2、烧录工具**
+### 烧录工具
 
 烧写工具下载及使用。
 
@@ -194,10 +194,6 @@ post_process
 
 烧录说明文档见RKDevTool_v3.28_for_window.zip的 “开发工具使用文档_v1.0.pdf“
 
-**七、联系**
+## 联系
 
 [厦门贝启科技有限公司-Bearkey-官网](https://www.bearkey.com.cn/product/RK3588工业主板.html?type=OpenHarmony&name=RK3588工业主板&id=26)
-
-
-
-

@@ -1,6 +1,6 @@
 # Bearkey BQ3588HM Development Kit
 
-**Overview**
+## Overview
 
 The Bearkey BQ3588HM Development Kit (Model: BQ3588HM) is based on the Rockchip RK3588, integrating a quad-core Cortex-A76 and a quad-core Cortex-A55 processor with a main frequency of 2.4GHz. It is equipped with a Mali-G610 GPU and a 2D acceleration engine, supporting multiple graphics standards for a smooth visual experience. It also supports 8K video decoding and 60Hz refresh rate output, and integrates a 6TOPS NPU (Neural Processing Unit). It enables the private deployment of ultra-large-scale parameter models under the Transformer architecture and supports deep learning frameworks including Caffe, Pytorch, OnnxNN, etc. The Bearkey RK3588 Development Board supports Bluetooth, Wi-Fi, NearLink, Beidou/GPS positioning, and features rich expansion interfaces, as well as multiple audio and video input/output interfaces including MIPI display, EDP display, HDMI display, dual-channel MIPI camera/USB camera, and supports headphone, microphone socket, and speaker socket. It is configured with dual Gigabit adaptive RJ45 Ethernet ports, supports 4G/5G internet access via expansion modules, comes with 8GB RAM and 64GB storage, and supports TF card, solid-state drive (SSD)/SATA hard disk expansion. It has abundant external interfaces and communication methods including RS485, RS232, DI, DO, USB, etc.
 The appearance of the Bearkey BQ3588HM Development Kit is shown in Figure 1:
@@ -13,21 +13,21 @@ The appearance of the Bearkey BQ3588HM Development Kit is shown in Figure 1:
 
     Figure 1: Appearance of Bearkey BQ3588HM Development Kit
 
-**I. Development Board Details**
+## Development Board Details
 
-**1. Front Interface Schematic of Bearkey BQ3588HM Development Kit**
+### Front Interface Schematic of Bearkey BQ3588HM Development Kit
 
 ![Front Interface Schematic of Bearkey BQ3588HM Development Kit](../picture/front.png)
 
     Figure 2: Front Interface Schematic of Bearkey BQ3588HM Development Kit
 
-2.**Reverse Interface Schematic of Bearkey BQ3588HM Development Kit**
+### Reverse Interface Schematic of Bearkey BQ3588HM Development Kit
 
 ![Reverse Interface Schematic of Bearkey BQ3588HM Development Kit](../picture/back.png)
 
     Figure 3: Reverse Interface Schematic of Bearkey BQ3588HM Development Kit
 
-**II. Development Board Specifications**
+## Development Board Specifications
 
 The Rockchip RK3588 integrates a quad-core Cortex-A76 and a quad-core Cortex-A55 processor with a maximum main frequency of 2.4GHz, and can be widely used in the field of embedded artificial intelligence.
 The core specifications of the Bearkey BQ3588HM Development Kit are shown in Table 1:
@@ -74,21 +74,21 @@ The interface specification description of the Bearkey BQ3588HM Development Kit 
 
     Table 2: Interface Specification Description of Bearkey BQ3588HM Development Kit
 
-**III. Installation of Development Board Accessories:**
+## Installation of Development Board Accessories
 
-**1. Camera Module Installation is shown in the figure below:**
+### Camera Module Installation
 
 ![Camera Installation Diagram of Bearkey BQ3588HM Development Kit](../picture/camera.jpg)
 
     Figure 4: Camera Installation Diagram of Bearkey BQ3588HM Development Kit
 
-**IV. Application Scenarios of the Development Board**
+## Application Scenarios of the Development Board
 
 The Bearkey BQ3588HM Development Kit is suitable for scenarios such as intelligent NVR, cloud terminals, IoT gateways, industrial control, information release terminals, multimedia advertising machines, and can also be widely used in the field of embedded artificial intelligence.
 
-**V. Setting Up the Development Environment**
+## Setting Up the Development Environment
 
-**1. Install Dependent Tools**
+### Install Dependent Tools
 
 The installation command is as follows:
 
@@ -99,9 +99,9 @@ sudo apt-get update && sudo apt-get install git ssh make gcc libssl-dev liblz4-t
 **Note:**
 The above installation command is applicable to Ubuntu 22.04. For other versions, use the corresponding installation commands according to the package names.
 
-**2. Obtain Standard System Source Code**
+### Obtain Standard System Source Code
 
-**Prerequisites**
+#### Prerequisites
 
 1.Register a Gitee account.
 2.Register the Gitee SSH public key, refer to Gitee Help Center.
@@ -126,7 +126,7 @@ chmod a+x /usr/local/bin/repo
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
 ```
 
-**Steps to Obtain Source Code**
+#### Steps to Obtain Source Code
 
 1.Download via repo + ssh (public key registration required, refer to Gitee Help Center):
 
@@ -148,7 +148,7 @@ repo sync -c
 repo forall -c 'git lfs pull'
 ```
 
-**Execute prebuilts**
+### Execute prebuilts
 
 Execute the script in the root directory of the source code to install the compiler and binary tools:
 
@@ -158,9 +158,9 @@ bash build/prebuilts_download.sh
 
 The downloaded prebuilts binaries are stored in the OpenHarmony_2.0_canary_prebuilts directory in the same directory as OpenHarmony by default.
 
-**VI. Compilation and Debugging**
+## Compilation and Debugging
 
-**1. Compilation**
+### Compilation
 
 Perform the following operations in the Linux environment:
 
@@ -182,7 +182,7 @@ All files generated by compilation are archived in the out/bq3588/ directory, an
 
 3.After completing the source code compilation, proceed to image burning.
 
-**2.Burning Tool**
+### Burning Tool
 
 Download and use the burning tool:
 
@@ -190,6 +190,6 @@ Tool path: bq3588/tools/RKDevTool_v3.28_for_window.zip
 
 For the burning instructions, refer to "Development Tool User Manual_v1.0.pdf" in RKDevTool_v3.28_for_window.zip.
 
-**VII. Contact**
+## Contact
 
 [Xiamen Bearkey Technology Co., Ltd. - Bearkey - Official Website](https://www.bearkey.com.cn/product/RK3588工业主板.html?type=OpenHarmony&name=RK3588工业主板&id=26)
