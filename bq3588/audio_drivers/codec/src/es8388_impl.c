@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2022 HiHope Open Source Organization .
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd.
  *
  * HDF is dual licensed: you can use it either under the terms of
  * the GPL, or the BSD license, at your option.
  * See the LICENSE file in the root of this repository for complete details.
  */
-#include "es8323_codec_impl.h"
+#include "es8388_impl.h"
 #include "audio_control.h"
 #include "audio_core.h"
 #include "audio_host.h"
@@ -19,25 +19,22 @@
 #include "audio_codec_base.h"
 #include "audio_stream_dispatch.h"
 
-
-#define HDF_LOG_TAG "es8323_codec"
-
 #define RK3588_I2C_BUS_NUMBER      (7)    // i2c7(master)
-/* ES8323 I2C Device address 0 0 1 0 0 0 AD0 R/W */
-#define ES8323_I2C_DEV_ADDR        (0x11) // 0010000 (slave)
-#define ES8323_I2C_REG_DATA_LEN    (1)    // reg value length is 8 bits
+/* ES8388 I2C Device address 0 0 1 0 0 0 AD0 R/W */
+#define ES8388_I2C_DEV_ADDR        (0x11) // 0010000 (slave)
+#define ES8388_I2C_REG_DATA_LEN    (1)    // reg value length is 8 bits
 
-#define ES8323_I2C_WAIT_TIMES      (10)   // ms
+#define ES8388_I2C_WAIT_TIMES      (10)   // ms
 
 #define RK3588_GPIO_NUMBER         (122)   // gpio3 RK_PD2;
 
 /* Original accessory_base implements */
-#define ES8323_COMM_SHIFT_8BIT     (8)
-#define ES8323_COMM_MASK_FF        (0xFF)
+#define ES8388_COMM_SHIFT_8BIT     (8)
+#define ES8388_COMM_MASK_FF        (0xFF)
 
-#define ES8323_I2C_REG_SIZE        (1)
-#define ES8323_I2C_MSG_NUM         (2)
-#define ES8323_I2C_MSG_BUF_SIZE    (2)
+#define ES8388_I2C_REG_SIZE        (1)
+#define ES8388_I2C_MSG_NUM         (2)
+#define ES8388_I2C_MSG_BUF_SIZE    (2)
 
 #define NUM_NEG_SIXTEEN            (-16)
 
@@ -57,7 +54,7 @@ static const struct AudioSapmRoute g_audioRoutes[] = {
 /*
  * release I2C object public function
  */
-static void Es8323I2cRelease(struct I2cMsg *msgs, int16_t msgSize, DevHandle i2cHandle)
+static void Es8388I2cRelease(struct I2cMsg *msgs, int16_t msgSize, DevHandle i2cHandle)
 {
     if (msgs != NULL) {
         if (msgSize == 0 && msgs->buf != NULL) {
@@ -66,7 +63,7 @@ static void Es8323I2cRelease(struct I2cMsg *msgs, int16_t msgSize, DevHandle i2c
         } else if (msgSize == 1 && msgs[0].buf != NULL) {
             OsalMemFree(msgs[0].buf);
             msgs[0].buf = NULL;
-        } else if (msgSize >= ES8323_I2C_MSG_NUM) {
+        } else if (msgSize >= ES8388_I2C_MSG_NUM) {
             if (msgs[0].buf != NULL) {
                 msgs[0].buf = NULL;
             }
@@ -85,7 +82,7 @@ static void Es8323I2cRelease(struct I2cMsg *msgs, int16_t msgSize, DevHandle i2c
     }
 }
 
-static int32_t Es8323I2cMsgFill(const struct AudioAddrConfig *regAttr, uint16_t rwFlag,
+static int32_t Es8388I2cMsgFill(const struct AudioAddrConfig *regAttr, uint16_t rwFlag,
     uint8_t *regs, struct I2cMsg *msgs)
 {
     uint8_t *msgBuf = NULL;
@@ -94,49 +91,49 @@ static int32_t Es8323I2cMsgFill(const struct AudioAddrConfig *regAttr, uint16_t 
         return HDF_ERR_INVALID_PARAM;
     }
     regs[0] = regAttr->addr;
-    msgs[0].addr = ES8323_I2C_DEV_ADDR;
+    msgs[0].addr = ES8388_I2C_DEV_ADDR;
     msgs[0].flags = 0;
-    msgs[0].len = ES8323_I2C_REG_DATA_LEN + 1;
+    msgs[0].len = ES8388_I2C_REG_DATA_LEN + 1;
 
     if (rwFlag == 0) { // write
         // S 11011A2A1 0 A ADDR A MS1 A LS1 A <....> P
-        msgBuf = OsalMemCalloc(ES8323_I2C_REG_DATA_LEN + 1);
+        msgBuf = OsalMemCalloc(ES8388_I2C_REG_DATA_LEN + 1);
         if (msgBuf == NULL) {
             AUDIO_DRIVER_LOG_ERR("[write]: malloc buf failed!");
             return HDF_ERR_MALLOC_FAIL;
         }
         msgBuf[0] = regs[0];
         msgBuf[1] = (uint8_t)regAttr->value;
-        if (ES8323_I2C_REG_DATA_LEN == ES8323_I2C_MSG_BUF_SIZE) { // when 2 bytes
-            msgBuf[1] = (regAttr->value >> ES8323_COMM_SHIFT_8BIT); // High 8 bits
-            msgBuf[ES8323_I2C_MSG_BUF_SIZE] = (uint8_t)(regAttr->value & ES8323_COMM_MASK_FF);    // Low 8 bits
+        if (ES8388_I2C_REG_DATA_LEN == ES8388_I2C_MSG_BUF_SIZE) { // when 2 bytes
+            msgBuf[1] = (regAttr->value >> ES8388_COMM_SHIFT_8BIT); // High 8 bits
+            msgBuf[ES8388_I2C_MSG_BUF_SIZE] = (uint8_t)(regAttr->value & ES8388_COMM_MASK_FF);    // Low 8 bits
         }
         msgs[0].buf = msgBuf;
     } else {
         // S 11011A2A1 0 A ADDR A Sr 11011A2A1 1 A MS1 A LS1 A <....> NA P
-        msgBuf = OsalMemCalloc(ES8323_I2C_REG_DATA_LEN);
+        msgBuf = OsalMemCalloc(ES8388_I2C_REG_DATA_LEN);
         if (msgBuf == NULL) {
             AUDIO_DRIVER_LOG_ERR("[read]: malloc buf failed!");
             return HDF_ERR_MALLOC_FAIL;
         }
         msgs[0].len = 1;
         msgs[0].buf = regs;
-        msgs[1].addr = ES8323_I2C_DEV_ADDR;
+        msgs[1].addr = ES8388_I2C_DEV_ADDR;
         msgs[1].flags = I2C_FLAG_READ;
-        msgs[1].len = ES8323_I2C_REG_DATA_LEN;
+        msgs[1].len = ES8388_I2C_REG_DATA_LEN;
         msgs[1].buf = msgBuf;
     }
     return HDF_SUCCESS;
 }
 
-static int32_t Es8323I2cReadWrite(struct AudioAddrConfig *regAttr, uint16_t rwFlag)
+static int32_t Es8388I2cReadWrite(struct AudioAddrConfig *regAttr, uint16_t rwFlag)
 {
     int32_t ret;
     DevHandle i2cHandle;
     int16_t transferMsgCount = 1;
-    uint8_t regs[ES8323_I2C_REG_SIZE];
-    struct I2cMsg msgs[ES8323_I2C_MSG_NUM];
-    (void)memset_s(msgs, sizeof(struct I2cMsg) * ES8323_I2C_MSG_NUM, 0, sizeof(struct I2cMsg) * ES8323_I2C_MSG_NUM);
+    uint8_t regs[ES8388_I2C_REG_SIZE];
+    struct I2cMsg msgs[ES8388_I2C_MSG_NUM];
+    (void)memset_s(msgs, sizeof(struct I2cMsg) * ES8388_I2C_MSG_NUM, 0, sizeof(struct I2cMsg) * ES8388_I2C_MSG_NUM);
 
     if (regAttr == NULL || rwFlag > 1) {
         AUDIO_DRIVER_LOG_ERR("invalid parameter.");
@@ -148,33 +145,33 @@ static int32_t Es8323I2cReadWrite(struct AudioAddrConfig *regAttr, uint16_t rwFl
         return HDF_FAILURE;
     }
     if (rwFlag == I2C_FLAG_READ) {
-        transferMsgCount = ES8323_I2C_MSG_NUM;
+        transferMsgCount = ES8388_I2C_MSG_NUM;
     }
-    ret = Es8323I2cMsgFill(regAttr, rwFlag, regs, msgs);
+    ret = Es8388I2cMsgFill(regAttr, rwFlag, regs, msgs);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("Es8323I2cMsgFill failed!");
+        AUDIO_DRIVER_LOG_ERR("Es8388I2cMsgFill failed!");
         I2cClose(i2cHandle);
         return HDF_FAILURE;
     }
     ret = I2cTransfer(i2cHandle, msgs, transferMsgCount);
     if (ret != transferMsgCount) {
         AUDIO_DRIVER_LOG_ERR("I2cTransfer err:%d", ret);
-        Es8323I2cRelease(msgs, transferMsgCount, i2cHandle);
+        Es8388I2cRelease(msgs, transferMsgCount, i2cHandle);
         return HDF_FAILURE;
     }
     if (rwFlag == I2C_FLAG_READ) {
         regAttr->value = msgs[1].buf[0];
-        if (ES8323_I2C_REG_DATA_LEN == ES8323_I2C_MSG_BUF_SIZE) { // when 2 bytes
-            regAttr->value = (msgs[1].buf[0] << ES8323_COMM_SHIFT_8BIT) | msgs[1].buf[1]; // result value 16 bits
+        if (ES8388_I2C_REG_DATA_LEN == ES8388_I2C_MSG_BUF_SIZE) { // when 2 bytes
+            regAttr->value = (msgs[1].buf[0] << ES8388_COMM_SHIFT_8BIT) | msgs[1].buf[1]; // result value 16 bits
         }
         AUDIO_DEVICE_LOG_DEBUG("[read]: regAttr->regValue=0x%x.\n", regAttr->value);
     }
-    Es8323I2cRelease(msgs, transferMsgCount, i2cHandle);
+    Es8388I2cRelease(msgs, transferMsgCount, i2cHandle);
     return HDF_SUCCESS;
 }
 
 // Read contrl reg bits value
-static int32_t Es8323RegBitsRead(struct AudioMixerControl *regAttr, uint32_t *regValue)
+static int32_t Es8388RegBitsRead(struct AudioMixerControl *regAttr, uint32_t *regValue)
 {
     int32_t ret;
     struct AudioAddrConfig regVal;
@@ -183,9 +180,9 @@ static int32_t Es8323RegBitsRead(struct AudioMixerControl *regAttr, uint32_t *re
         return HDF_ERR_INVALID_PARAM;
     }
     regVal.addr  = regAttr->reg;
-    ret = Es8323I2cReadWrite(&regVal, I2C_FLAG_READ);
+    ret = Es8388I2cReadWrite(&regVal, I2C_FLAG_READ);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("Es8323RegBitsRead failed.");
+        AUDIO_DRIVER_LOG_ERR("Es8388RegBitsRead failed.");
         return HDF_FAILURE;
     }
     *regValue = regVal.value;
@@ -206,7 +203,7 @@ static int32_t Es8323RegBitsRead(struct AudioMixerControl *regAttr, uint32_t *re
 }
 
 // Update contrl reg bits value
-static int32_t Es8323RegBitsUpdate(struct AudioMixerControl regAttr)
+static int32_t Es8388RegBitsUpdate(struct AudioMixerControl regAttr)
 {
     int32_t ret;
     struct AudioAddrConfig regVal;
@@ -220,16 +217,16 @@ static int32_t Es8323RegBitsUpdate(struct AudioMixerControl regAttr)
     }
     newValue = regAttr.value << regAttr.shift;
     newMask = regAttr.mask << regAttr.shift;
-    ret = Es8323RegBitsRead(&regAttr, &value);
+    ret = Es8388RegBitsRead(&regAttr, &value);
     if (ret != HDF_SUCCESS) {
-        ADM_LOG_ERR("Es8323RegBitsRead faileded, ret=%d.", ret);
+        ADM_LOG_ERR("Es8388RegBitsRead faileded, ret=%d.", ret);
         return HDF_FAILURE;
     }
     regVal.value = (value & ~newMask) | (newValue & newMask);
     regVal.addr  = regAttr.reg;
-    ret = Es8323I2cReadWrite(&regVal, 0);
+    ret = Es8388I2cReadWrite(&regVal, 0);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DRIVER_LOG_ERR("Es8323I2cReadWrite faileded.");
+        AUDIO_DRIVER_LOG_ERR("Es8388I2cReadWrite faileded.");
         return HDF_FAILURE;
     }
     AUDIO_DEVICE_LOG_DEBUG("regAddr=0x%x, regValue=0x%x, oldValue=0x%x, newValue=0x%x,",
@@ -240,32 +237,32 @@ static int32_t Es8323RegBitsUpdate(struct AudioMixerControl regAttr)
     return HDF_SUCCESS;
 }
 
-static int32_t Es8323DaiParamsUpdate4Scene(struct AudioMixerControl *daiHwParamsRegCfgItem,
-    struct Es8323DaiHwParamsTransferData transferData, struct Es8323DaiParamsVal daiParamsVal)
+static int32_t Es8388DaiParamsUpdate4Scene(struct AudioMixerControl *daiHwParamsRegCfgItem,
+    struct Es8388DaiHwParamsTransferData transferData, struct Es8388DaiParamsVal daiParamsVal)
 {
     int32_t ret;
     uint8_t i;
 
     for (i = transferData.inputParamsBeginIndex; i <= transferData.inputParamsEndIndex; i++) {
         switch (i) {
-            case ES8323_DHP_RENDER_FREQUENCY_INX:
-            case ES8323_DHP_CAPTURE_FREQUENCY_INX:
+            case ES8388_DHP_RENDER_FREQUENCY_INX:
+            case ES8388_DHP_CAPTURE_FREQUENCY_INX:
                 daiHwParamsRegCfgItem[i].value = daiParamsVal.frequencyVal;
                 break;
-            case ES8323_DHP_RENDER_FORMAT_INX:
-            case ES8323_DHP_CAPTURE_FORMAT_INX:
+            case ES8388_DHP_RENDER_FORMAT_INX:
+            case ES8388_DHP_CAPTURE_FORMAT_INX:
                 daiHwParamsRegCfgItem[i].value = daiParamsVal.formatVal;
                 break;
-            case ES8323_DHP_RENDER_CHANNEL_INX:
-            case ES8323_DHP_CAPTURE_CHANNEL_INX:
+            case ES8388_DHP_RENDER_CHANNEL_INX:
+            case ES8388_DHP_CAPTURE_CHANNEL_INX:
                 daiHwParamsRegCfgItem[i].value = daiParamsVal.channelVal;
                 break;
             default:
                 continue;
         }
-        ret = Es8323RegBitsUpdate(daiHwParamsRegCfgItem[i]);
+        ret = Es8388RegBitsUpdate(daiHwParamsRegCfgItem[i]);
         if (ret != HDF_SUCCESS) {
-            AUDIO_DEVICE_LOG_ERR("Es8323RegBitsUpdate failed.");
+            AUDIO_DEVICE_LOG_ERR("Es8388RegBitsUpdate failed.");
             return HDF_FAILURE;
         }
     }
@@ -274,12 +271,12 @@ static int32_t Es8323DaiParamsUpdate4Scene(struct AudioMixerControl *daiHwParams
 }
 
 // update external codec I2S frequency
-static int32_t Es8323DaiParamsUpdate(const struct AudioCard *card,
-    struct Es8323DaiParamsVal daiParamsVal, bool playback)
+static int32_t Es8388DaiParamsUpdate(const struct AudioCard *card,
+    struct Es8388DaiParamsVal daiParamsVal, bool playback)
 {
     int32_t ret;
     struct AudioMixerControl *daiHwParamsRegCfgItem = NULL;
-    struct Es8323DaiHwParamsTransferData transferData;
+    struct Es8388DaiHwParamsTransferData transferData;
 
     ret = (card == NULL || card->rtd == NULL || card->rtd->codec == NULL
            || card->rtd->codec->devData == NULL || card->rtd->codec->devData->regConfig == NULL
@@ -296,15 +293,15 @@ static int32_t Es8323DaiParamsUpdate(const struct AudioCard *card,
     }
 
     if (!playback) { // capture
-        transferData.inputParamsBeginIndex = ES8323_DHP_CAPTURE_FREQUENCY_INX;
-        transferData.inputParamsEndIndex = ES8323_DHP_CAPTURE_FORMAT_INX;
+        transferData.inputParamsBeginIndex = ES8388_DHP_CAPTURE_FREQUENCY_INX;
+        transferData.inputParamsEndIndex = ES8388_DHP_CAPTURE_FORMAT_INX;
     } else { // playback
-        transferData.inputParamsBeginIndex = ES8323_DHP_RENDER_FREQUENCY_INX;
-        transferData.inputParamsEndIndex = ES8323_DHP_RENDER_FORMAT_INX;
+        transferData.inputParamsBeginIndex = ES8388_DHP_RENDER_FREQUENCY_INX;
+        transferData.inputParamsEndIndex = ES8388_DHP_RENDER_FORMAT_INX;
     }
-    ret = Es8323DaiParamsUpdate4Scene(daiHwParamsRegCfgItem, transferData, daiParamsVal);
+    ret = Es8388DaiParamsUpdate4Scene(daiHwParamsRegCfgItem, transferData, daiParamsVal);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323DaiParamsUpdate4Scene failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388DaiParamsUpdate4Scene failed.");
         return HDF_FAILURE;
     }
 
@@ -312,38 +309,38 @@ static int32_t Es8323DaiParamsUpdate(const struct AudioCard *card,
 }
 
 
-static int32_t Es8323DeviceFrequencyParse(uint32_t rate, uint16_t *freq)
+static int32_t Es8388DeviceFrequencyParse(uint32_t rate, uint16_t *freq)
 {
     if (freq == NULL) {
         AUDIO_DRIVER_LOG_ERR("input param is NULL");
         return HDF_FAILURE;
     }
     switch (rate) {
-        case ES8323_I2S_SAMPLE_FREQUENCY_8000:
+        case I2S_SAMPLE_FREQUENCY_8000:
             *freq = 0x0a;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_11025:
+        case I2S_SAMPLE_FREQUENCY_11025:
             *freq = 0x07;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_16000:
+        case I2S_SAMPLE_FREQUENCY_16000:
             *freq = 0x06;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_22050:
+        case I2S_SAMPLE_FREQUENCY_22050:
             *freq = 0x04;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_32000:
+        case I2S_SAMPLE_FREQUENCY_32000:
             *freq = 0x03;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_44100:
+        case I2S_SAMPLE_FREQUENCY_44100:
             *freq = 0x02;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_48000:
+        case I2S_SAMPLE_FREQUENCY_48000:
             *freq = 0x02;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_88200:
+        case I2S_SAMPLE_FREQUENCY_88200:
             *freq = 0x00;
             break;
-        case ES8323_I2S_SAMPLE_FREQUENCY_96000:
+        case I2S_SAMPLE_FREQUENCY_96000:
             *freq = 0x00;
             break;
         default:
@@ -354,7 +351,7 @@ static int32_t Es8323DeviceFrequencyParse(uint32_t rate, uint16_t *freq)
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint32_t *val)
+int32_t Es8388DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint32_t *val)
 {
     int32_t ret;
     struct AudioAddrConfig regAttr;
@@ -364,7 +361,7 @@ int32_t Es8323DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint3
     }
     regAttr.addr = (uint8_t)reg;
     regAttr.value = 0;
-    ret = Es8323I2cReadWrite(&regAttr, I2C_FLAG_READ);
+    ret = Es8388I2cReadWrite(&regAttr, I2C_FLAG_READ);
     if (ret != HDF_SUCCESS) {
         AUDIO_DRIVER_LOG_ERR("failed.");
         return HDF_FAILURE;
@@ -374,13 +371,13 @@ int32_t Es8323DeviceRegRead(const struct CodecDevice *codec, uint32_t reg, uint3
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DeviceRegWrite(const struct CodecDevice *codec, uint32_t reg, uint32_t value)
+int32_t Es8388DeviceRegWrite(const struct CodecDevice *codec, uint32_t reg, uint32_t value)
 {
     int32_t ret;
     struct AudioAddrConfig regAttr;
     regAttr.addr = (uint8_t)reg;
     regAttr.value = (uint16_t)value;
-    ret = Es8323I2cReadWrite(&regAttr, 0);
+    ret = Es8388I2cReadWrite(&regAttr, 0);
     if (ret != HDF_SUCCESS) {
         AUDIO_DRIVER_LOG_ERR("failed.");
         return HDF_FAILURE;
@@ -390,7 +387,7 @@ int32_t Es8323DeviceRegWrite(const struct CodecDevice *codec, uint32_t reg, uint
 }
 
 /* Original es8323 functions */
-static int32_t Es8323FormatParse(enum AudioFormat format, uint16_t *bitWidth)
+static int32_t Es8388FormatParse(enum AudioFormat format, uint16_t *bitWidth)
 {
     // current set default format(standard) for 24 bit
     if (bitWidth == NULL) {
@@ -399,13 +396,13 @@ static int32_t Es8323FormatParse(enum AudioFormat format, uint16_t *bitWidth)
     }
     switch (format) {
         case AUDIO_FORMAT_TYPE_PCM_16_BIT:
-            *bitWidth = ES8323_I2S_SAMPLE_FORMAT_REG_VAL_16;
+            *bitWidth = ES8388_I2S_SAMPLE_FORMAT_REG_VAL_16;
             break;
         case AUDIO_FORMAT_TYPE_PCM_24_BIT:
-            *bitWidth = ES8323_I2S_SAMPLE_FORMAT_REG_VAL_24;
+            *bitWidth = ES8388_I2S_SAMPLE_FORMAT_REG_VAL_24;
             break;
         case AUDIO_FORMAT_TYPE_PCM_32_BIT:
-            *bitWidth = ES8323_I2S_SAMPLE_FORMAT_REG_VAL_32;
+            *bitWidth = ES8388_I2S_SAMPLE_FORMAT_REG_VAL_32;
             break;
         default:
             AUDIO_DEVICE_LOG_ERR("format: %d is not support.", format);
@@ -415,7 +412,7 @@ static int32_t Es8323FormatParse(enum AudioFormat format, uint16_t *bitWidth)
     return HDF_SUCCESS;
 }
 
-static int32_t Es8323WorkStatusEnable(const struct AudioCard *card)
+static int32_t Es8388WorkStatusEnable(const struct AudioCard *card)
 {
     int32_t ret;
     uint8_t i;
@@ -439,9 +436,9 @@ static int32_t Es8323WorkStatusEnable(const struct AudioCard *card)
         return HDF_FAILURE;
     }
     for (i = 0; i < daiStartupParamsRegCfgItemCount; i++) {
-        ret = Es8323RegBitsUpdate(daiStartupParamsRegCfgItem[i]);
+        ret = Es8388RegBitsUpdate(daiStartupParamsRegCfgItem[i]);
         if (ret != HDF_SUCCESS) {
-            AUDIO_DEVICE_LOG_ERR("Es8323RegBitsUpdate failed.");
+            AUDIO_DEVICE_LOG_ERR("Es8388RegBitsUpdate failed.");
             return HDF_FAILURE;
         }
     }
@@ -471,9 +468,9 @@ int32_t SpkGpioSetValue(uint16_t gpioNum, uint16_t value)
 }
 
 /*
- * ES8323 Hardware Rest, enable speaker
+ * ES8388 Hardware Rest, enable speaker
 */
-static int32_t Es8323HardwareRest(void)
+static int32_t Es8388HardwareRest(void)
 {
     int32_t ret;
     ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_HIGH);
@@ -485,7 +482,7 @@ static int32_t Es8323HardwareRest(void)
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *device)
+int32_t Es8388DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *device)
 {
     int32_t ret;
 
@@ -495,9 +492,9 @@ int32_t Es8323DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *
         return HDF_ERR_INVALID_OBJECT;
     }
 
-    ret = Es8323HardwareRest();
+    ret = Es8388HardwareRest();
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323HardwareRest failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388HardwareRest failed.");
         return HDF_FAILURE;
     }
 
@@ -536,7 +533,7 @@ int32_t Es8323DeviceInit(struct AudioCard *audioCard, const struct CodecDevice *
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *device)
+int32_t Es8388DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *device)
 {
     if (device == NULL || device->devDaiName == NULL) {
         AUDIO_DEVICE_LOG_ERR("input para is NULL.");
@@ -547,37 +544,37 @@ int32_t Es8323DaiDeviceInit(struct AudioCard *card, const struct DaiDevice *devi
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DaiStartup(const struct AudioCard *card, const struct DaiDevice *device)
+int32_t Es8388DaiStartup(const struct AudioCard *card, const struct DaiDevice *device)
 {
     int ret;
     (void)card;
     (void)device;
 
-    struct Es8323Priv  *priv = GetCodecDevice();
+    struct Es8388Priv  *priv = GetCodecDevice();
     if (priv == NULL) {
         AUDIO_DEVICE_LOG_ERR("priv is NULL, default use mic device!");
     }
-    ret = Es8323WorkStatusEnable(card);
+    ret = Es8388WorkStatusEnable(card);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323WorkStatusEnable failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388WorkStatusEnable failed.");
         return HDF_FAILURE;
     }
 
-    Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x09, 0x33);
+    Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, 0x09, 0x33);
     if ((priv != NULL) && !(priv->hpState)) {
-        Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x00);
+        Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x00);
     } else {
-        Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x50);
+        Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, 0x0a, 0x50);
     }
 
     return HDF_SUCCESS;
 }
 
-int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwParams *param)
+int32_t Es8388DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwParams *param)
 {
     int32_t ret;
     uint16_t frequency, bitWidth;
-    struct Es8323DaiParamsVal daiParamsVal;
+    struct Es8388DaiParamsVal daiParamsVal;
     bool playback = true;
 
     (void)card;
@@ -585,23 +582,23 @@ int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
         AUDIO_DEVICE_LOG_ERR("input para is NULL.");
         return HDF_ERR_INVALID_PARAM;
     }
-    ret = Es8323DeviceFrequencyParse(param->rate, &frequency);
+    ret = Es8388DeviceFrequencyParse(param->rate, &frequency);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323DeviceFrequencyParse failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388DeviceFrequencyParse failed.");
         return HDF_ERR_NOT_SUPPORT;
     }
-    ret = Es8323FormatParse(param->format, &bitWidth);
+    ret = Es8388FormatParse(param->format, &bitWidth);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323FormatParse failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388FormatParse failed.");
         return HDF_ERR_NOT_SUPPORT;
     }
     daiParamsVal.frequencyVal = frequency;
     daiParamsVal.formatVal = bitWidth;
     daiParamsVal.channelVal = param->channels;
     playback = (param->streamType == AUDIO_RENDER_STREAM) ? true : false;
-    ret = Es8323DaiParamsUpdate(card, daiParamsVal, playback);
+    ret = Es8388DaiParamsUpdate(card, daiParamsVal, playback);
     if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("Es8323DaiParamsUpdate failed.");
+        AUDIO_DEVICE_LOG_ERR("Es8388DaiParamsUpdate failed.");
         return HDF_FAILURE;
     }
     AUDIO_DEVICE_LOG_DEBUG("channels = %d, rate = %d, periodSize = %d, \
@@ -612,25 +609,25 @@ int32_t Es8323DaiHwParams(const struct AudioCard *card, const struct AudioPcmHwP
     return HDF_SUCCESS;
 }
 
-int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct DaiDevice *device)
+int32_t Es8388NormalTrigger(const struct AudioCard *card, int cmd, const struct DaiDevice *device)
 {
     int32_t ret;
-    struct Es8323Priv  *priv = GetCodecDevice();
+    struct Es8388Priv  *priv = GetCodecDevice();
 
     switch (cmd) {
         case AUDIO_DRV_PCM_IOCTL_RENDER_START:
         case AUDIO_DRV_PCM_IOCTL_RENDER_RESUME:
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7C);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0x00);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ANAVOLMANAG, 0x7C);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_CHIPPOWER, 0x00);
             if ((priv != NULL) && !(priv->hpState)) {
                 ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_HIGH);
                 if (ret != HDF_SUCCESS) {
                     AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
                     return ret;
                 }
-                Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x30);
+                Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_DACPOWER, 0x30);
             } else {
-                Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0x0c);
+                Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_DACPOWER, 0x0c);
                 ret = SpkGpioSetValue(RK3588_GPIO_NUMBER, GPIO_VAL_LOW);
                 if (ret != HDF_SUCCESS) {
                     AUDIO_DEVICE_LOG_ERR("write gpio val failed. ret:%d", ret);
@@ -640,22 +637,22 @@ int32_t Es8323NormalTrigger(const struct AudioCard *card, int cmd, const struct 
             break;
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_START:
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_RESUME:
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7C);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0x00);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0xc0);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ADCPOWER, 0x00);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ANAVOLMANAG, 0x7C);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_CHIPPOWER, 0x00);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_DACPOWER, 0xc0);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ADCPOWER, 0x00);
             break;
         case AUDIO_DRV_PCM_IOCTL_RENDER_STOP:
         case AUDIO_DRV_PCM_IOCTL_RENDER_PAUSE:
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_DACPOWER, 0xc0);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0xFF);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7B);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_DACPOWER, 0xc0);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_CHIPPOWER, 0xFF);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ANAVOLMANAG, 0x7B);
             break;
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_STOP:
         case AUDIO_DRV_PCM_IOCTL_CAPTURE_PAUSE:
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ADCPOWER, 0xFF);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_CHIPPOWER, 0xFF);
-            Es8323DeviceRegWrite((const struct CodecDevice *)0x0710, ES8323_ANAVOLMANAG, 0x7B);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ADCPOWER, 0xFF);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_CHIPPOWER, 0xFF);
+            Es8388DeviceRegWrite((const struct CodecDevice *)0x0710, ES8388_ANAVOLMANAG, 0x7B);
         break;
 
         default:

@@ -1,13 +1,20 @@
 /*
- * Copyright (C) 2022 HiHope Open Source Organization .
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd.
  *
  * HDF is dual licensed: you can use it either under the terms of
  * the GPL, or the BSD license, at your option.
  * See the LICENSE file in the root of this repository for complete details.
  */
 
-#ifndef RK3588_AUDIO_COMMON_H
-#define RK3588_AUDIO_COMMON_H
+#ifndef DAI_OPS_H
+#define DAI_OPS_H
+
+#include "audio_core.h"
+#include "audio_host.h"
+#include "audio_dai_base.h"
+#include "audio_platform_base.h"
+#include "osal_io.h"
+#include "audio_driver_log.h"
 
 typedef enum {
     AUDIO_DEVICE_SAMPLE_RATE_8000   = 8000,    /* 8kHz sample_rate */
@@ -27,5 +34,17 @@ typedef enum {
     AUDIO_DEVICE_SAMPLE_RATE_BUTT,
 } AudioDeviceSampleRate;
 
+int32_t DaiDeviceInit(struct AudioCard *card,
+    const struct DaiDevice *dai);
+int32_t NormalTrigger(const struct AudioCard *card,
+    int cmd, const struct DaiDevice *dai);
+int32_t DeviceReadReg(const struct DaiDevice *dai,
+    uint32_t reg, uint32_t *val);
+int32_t DaiStartup(const struct AudioCard *card,
+    const struct DaiDevice *dai);
+int32_t DeviceWriteReg(const struct DaiDevice *dai,
+    uint32_t reg, uint32_t value);
+int32_t DaiHwParams(const struct AudioCard *card,
+    const struct AudioPcmHwParams *param);
 
-#endif // __RK3588_AUDIO_COMMON_H__
+#endif
