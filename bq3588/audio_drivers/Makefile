@@ -17,14 +17,14 @@ KHDF_FRAMEWORK_ROOT_DIR = drivers/hdf/framework
 KHDF_AUDIO_RK3588_INC_DIR = drivers/hdf/framework/../../../device/board/bearkey/bq3588/audio_drivers
 
 obj-$(CONFIG_DRIVERS_HDF_AUDIO_BQ3588) += \
-        accessory/es8323/src/es8323_adapter.o \
-        accessory/es8323/src/es8323_impl.o \
-        accessory/es8323/src/es8323_linux_driver.o \
-        dai/src/rk3588_dai_linux_driver.o \
-        dai/src/rk3588_dai_adapter.o \
-        dai/src/rk3588_dai_ops.o \
-        soc/src/rk3588_dma_adapter.o \
-        soc/src/rk3588_dma_ops.o
+        codec/src/es8388_adapter.o \
+        codec/src/es8388_impl.o \
+        codec/src/es8388_driver.o \
+        dai/src/dai_driver.o \
+        dai/src/dai_adapter.o \
+        dai/src/dai_ops.o \
+        soc/src/dma_adapter.o \
+        soc/src/dma_ops.o
 
 ccflags-$(CONFIG_DRIVERS_HDF_AUDIO_BQ3588) += \
         -I$(srctree)/$(KHDF_AUDIO_KHDF_ROOT_DIR)/osal/include \
@@ -49,6 +49,4 @@ ccflags-$(CONFIG_DRIVERS_HDF_AUDIO_BQ3588) += \
         -I$(srctree)/sound/soc/rockchip \
         -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/soc/include \
         -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/dai/include \
-        -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/dsp/include \
-        -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/accessory/es8323/include \
-        -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/include
+        -I$(srctree)/$(KHDF_AUDIO_RK3588_INC_DIR)/codec/include

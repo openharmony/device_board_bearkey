@@ -1,36 +1,86 @@
 /*
- * Copyright (C) 2022 HiHope Open Source Organization .
+ * Copyright © 2015-2026 Xiamen Bearkey Technology Co., Ltd.
  *
  * HDF is dual licensed: you can use it either under the terms of
  * the GPL, or the BSD license, at your option.
  * See the LICENSE file in the root of this repository for complete details.
  */
-#include <linux/io.h>
+
 #include <linux/delay.h>
-#include "audio_core.h"
-#include "audio_host.h"
-#include "audio_platform_base.h"
-#include "osal_io.h"
-#include "audio_driver_log.h"
-#include "rk3588_dai_ops.h"
-#include "audio_dai_base.h"
-#define HDF_LOG_TAG rk3588_dai_adapter
+#include <linux/io.h>
+#include "dai_ops.h"
+
+#define HDF_LOG_TAG dai_adapter
+
+static int32_t DaiGetServiceName(const struct HdfDeviceObject *device);
 
 struct AudioDaiOps g_daiDeviceOps = {
-    .Startup = Rk3588DaiStartup,
-    .HwParams = Rk3588DaiHwParams,
-    .Trigger = Rk3588NormalTrigger,
+    .Startup = DaiStartup,
+    .HwParams = DaiHwParams,
+    .Trigger = NormalTrigger,
 };
 
 struct DaiData g_daiData = {
-    .Read = Rk3588DeviceReadReg,
-    .Write = Rk3588DeviceWriteReg,
-    .DaiInit = Rk3588DaiDeviceInit,
+    .Read = DeviceReadReg,
+    .Write = DeviceWriteReg,
+    .DaiInit = DaiDeviceInit,
     .ops = &g_daiDeviceOps,
 };
 
+static void DaiDriverRelease(struct HdfDeviceObject *device)
+{
+    struct DaiHost *daiHost = NULL;
 
-/* HdfDriverEntry implementations */
+    if (device == NULL) {
+        AUDIO_DEVICE_LOG_ERR("device is NULL");
+        return;
+    }
+
+    OsalMutexDestroy(&g_daiData.mutex);
+
+    daiHost = (struct DaiHost *)device->service;
+    if (daiHost == NULL) {
+        AUDIO_DEVICE_LOG_ERR("daiHost is NULL");
+        return;
+    }
+
+    OsalMemFree(daiHost);
+    AUDIO_DEVICE_LOG_INFO("success!");
+}
+
+static int32_t DaiGetServiceName(const struct HdfDeviceObject *device)
+{
+    const struct DeviceResourceNode *node = NULL;
+    struct DeviceResourceIface *drsOps = NULL;
+    int32_t ret;
+
+    if (device == NULL) {
+        AUDIO_DEVICE_LOG_ERR("input para is nullptr.");
+        return HDF_FAILURE;
+    }
+
+    node = device->property;
+    if (node == NULL) {
+        AUDIO_DEVICE_LOG_ERR("drs node is nullptr.");
+        return HDF_FAILURE;
+    }
+
+    drsOps = DeviceResourceGetIfaceInstance(HDF_CONFIG_SOURCE);
+    if (drsOps == NULL || drsOps->GetString == NULL) {
+        AUDIO_DEVICE_LOG_ERR("invalid drs ops fail!");
+        return HDF_FAILURE;
+    }
+
+    ret = drsOps->GetString(node, "serviceName", &g_daiData.drvDaiName, 0);
+    if (ret != HDF_SUCCESS) {
+        AUDIO_DEVICE_LOG_ERR("read serviceName fail!");
+        return ret;
+    }
+
+    AUDIO_DEVICE_LOG_INFO("success!");
+    return HDF_SUCCESS;
+}
+
 static int32_t DaiDriverBind(struct HdfDeviceObject *device)
 {
     struct DaiHost *daiHost = NULL;
@@ -54,39 +104,6 @@ static int32_t DaiDriverBind(struct HdfDeviceObject *device)
     return HDF_SUCCESS;
 }
 
-
-static int32_t DaiGetServiceName(const struct HdfDeviceObject *device)
-{
-    const struct DeviceResourceNode *node = NULL;
-    struct DeviceResourceIface *drsOps = NULL;
-    int32_t ret;
-
-    if (device == NULL) {
-        AUDIO_DEVICE_LOG_ERR("input para is nullptr.");
-        return HDF_FAILURE;
-    }
-
-    node = device->property;
-    if (node == NULL) {
-        AUDIO_DEVICE_LOG_ERR("drs node is nullptr.");
-        return HDF_FAILURE;
-    }
-    drsOps = DeviceResourceGetIfaceInstance(HDF_CONFIG_SOURCE);
-    if (drsOps == NULL || drsOps->GetString == NULL) {
-        AUDIO_DEVICE_LOG_ERR("invalid drs ops fail!");
-        return HDF_FAILURE;
-    }
-
-    ret = drsOps->GetString(node, "serviceName", &g_daiData.drvDaiName, 0);
-    if (ret != HDF_SUCCESS) {
-        AUDIO_DEVICE_LOG_ERR("read serviceName fail!");
-        return ret;
-    }
-
-    AUDIO_DEVICE_LOG_INFO("success!");
-    return HDF_SUCCESS;
-}
-
 static int32_t DaiDriverInit(struct HdfDeviceObject *device)
 {
     int32_t ret = 0;
@@ -96,48 +113,27 @@ static int32_t DaiDriverInit(struct HdfDeviceObject *device)
         return HDF_ERR_INVALID_OBJECT;
     }
 
-    if (DaiGetConfigInfo(device, &g_daiData) !=  HDF_SUCCESS) {
+    if (DaiGetConfigInfo(device, &g_daiData) != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("get dai data fail.");
         return HDF_FAILURE;
     }
 
-    if (DaiGetServiceName(device) !=  HDF_SUCCESS) {
+    if (DaiGetServiceName(device) != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("get service name fail.");
         return HDF_FAILURE;
     }
 
     OsalMutexInit(&g_daiData.mutex);
     ret = AudioSocRegisterDai(device, (void *)&g_daiData);
-    if (ret !=  HDF_SUCCESS) {
+    if (ret != HDF_SUCCESS) {
         AUDIO_DEVICE_LOG_ERR("register dai fail.");
         return ret;
     }
 
-    AUDIO_DEVICE_LOG_INFO("success.\n");
+    AUDIO_DEVICE_LOG_INFO("success.");
     return HDF_SUCCESS;
 }
 
-static void DaiDriverRelease(struct HdfDeviceObject *device)
-{
-    struct DaiHost *daiHost;
-
-    if (device == NULL) {
-        AUDIO_DEVICE_LOG_ERR("device is NULL");
-        return;
-    }
-
-    OsalMutexDestroy(&g_daiData.mutex);
-
-    daiHost = (struct DaiHost *)device->service;
-    if (daiHost == NULL) {
-        AUDIO_DEVICE_LOG_ERR("daiHost is NULL");
-        return;
-    }
-    OsalMemFree(daiHost);
-    AUDIO_DEVICE_LOG_INFO("success!");
-}
-
-/* HdfDriverEntry definitions */
 struct HdfDriverEntry g_daiDriverEntry = {
     .moduleVersion = 1,
     .moduleName = "DAI_RK3588",
@@ -145,4 +141,5 @@ struct HdfDriverEntry g_daiDriverEntry = {
     .Init = DaiDriverInit,
     .Release = DaiDriverRelease,
 };
+
 HDF_INIT(g_daiDriverEntry);
