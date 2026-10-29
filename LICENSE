@@ -10,8 +10,4 @@ The hcs,neptune100,picture,shields and others directories are licensed under Apa
 ./bq3588/loader
 ./bq3588/ws73e
 
-(2) The directories below are licensed under GNU General Public License, version 2.
-./bq3588/audio_drivers
-
-
 As for the specific use of the licenses,  please refer to the relevant description in the documents.
