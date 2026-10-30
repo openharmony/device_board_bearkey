@@ -26,11 +26,14 @@
           "graphic_surface",
           "hdf_core",
           "hilog",
+          "init",
           "ipc",
           "hitrace",
           "hisysevent",
           "drivers_interface_camera",
           "drivers_interface_display",
+          "bounds_checking_function",
+          "ril_adapter",
           "soc_rk3588"
         ],
         "third_party": [
