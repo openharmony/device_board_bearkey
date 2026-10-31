@@ -202,16 +202,11 @@ RetCode RKSourceNode::RKPortHandler::StartCollectBuffers()
         std::string name = "collect#" + std::to_string(streamId);
         prctl(PR_SET_NAME, name.c_str());
         CAMERA_LOGI("StartCollectBuffers thread start, name = %{public}s", name.c_str());
-        while (true) {
-            bool running = false;
-            {
-                std::unique_lock<std::mutex> l(cltLock);
-                running = cltRun;
-            }
-            if (!running) {
-                CAMERA_LOGD("collect buffer thread break");
-                break;
-            }
+        auto isRunning = [this]() -> bool {
+            std::unique_lock<std::mutex> l(cltLock);
+            return cltRun;
+        };
+        while (isRunning()) {
             CollectBuffers();
         }
         CAMERA_LOGI("StartCollectBuffers thread end, name = %{public}s", name.c_str());
@@ -306,18 +301,10 @@ RetCode RKSourceNode::RKPortHandler::StartDistributeBuffers()
         std::string name = "distribute#" + std::to_string(id);
         prctl(PR_SET_NAME, name.c_str());
         CAMERA_LOGI("StartDistributeBuffers thread start, name = %{public}s", name.c_str());
-        while (true) {
-            bool running = false;
-            {
-                std::unique_lock<std::mutex> l(rblock);
-                running = dbtRun;
-            }
-            if (!running) {
-                CAMERA_LOGD("distribute buffers thread break");
-                break;
-            }
+        while (dbtRun.load()) {
             DistributeBuffers();
         }
+
         CAMERA_LOGI("StartDistributeBuffers thread end, name = %{public}s", name.c_str());
     });
     return RC_OK;
