@@ -42,6 +42,8 @@ private:
     void DeliverForkBuffer(std::shared_ptr<IBuffer>& forkbuffer);
     void CopyBufferToForkBuffer(std::shared_ptr<IBuffer>& buffer, std::shared_ptr<IBuffer>& forkBuffer);
     void CleanupDmaBufs();
+    void CleanupOneDmaBuf(std::shared_ptr<IBuffer>& buffer);
+    void CleanupPoolDmaBufs();
 
     std::mutex                            mtx_;
     std::queue<std::shared_ptr<IBuffer>>  bufferQueue_ = {};

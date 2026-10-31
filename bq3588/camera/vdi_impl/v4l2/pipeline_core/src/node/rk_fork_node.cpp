@@ -102,9 +102,7 @@ RetCode RKForkNode::Stop(const int32_t streamId)
         forkThread_->join();
         forkThread_ = nullptr;
     }
-    if (bufferPool_ != nullptr) {
-        DrainForkBufferPool();
-    }
+    CleanupPoolDmaBufs();
     streamRunning_ = false;
     return RC_OK;
 }
@@ -286,17 +284,77 @@ void RKForkNode::CleanupDmaBufs()
 {
     std::lock_guard<std::mutex> l(dmaLock_);
     for (auto& kv : dmaBufs_) {
-        IBuffer* buf = kv.first;
         DmaInfo& info = kv.second;
-        if (buf == nullptr) {
-            continue;
-        }
-        if (info.addr != nullptr && buf->GetVirAddress() == info.addr) {
-            DmaAllocator::Release(info);
-            buf->SetVirAddress(buf->GetSuffaceBufferAddr());
+        if (info.fd >= 0) {
+            close(info.fd);
+            info.fd = -1;
         }
     }
     dmaBufs_.clear();
+}
+
+void RKForkNode::CleanupOneDmaBuf(std::shared_ptr<IBuffer>& buffer)
+{
+    if (buffer == nullptr) {
+        CAMERA_LOGE("CleanupOneDmaBuf buffer is null");
+        return;
+    }
+    std::lock_guard<std::mutex> l(dmaLock_);
+    auto it = dmaBufs_.find(buffer.get());
+    if (it == dmaBufs_.end()) {
+        return;
+    }
+    DmaInfo& info = it->second;
+    if (info.addr == nullptr) {
+        dmaBufs_.erase(it);
+        return;
+    }
+    if (buffer->GetVirAddress() != info.addr) {
+        buffer->SetVirAddress(buffer->GetSuffaceBufferAddr());
+        DmaAllocator::Release(info);
+        dmaBufs_.erase(it);
+        return;
+    }
+    buffer->SetVirAddress(buffer->GetSuffaceBufferAddr());
+    DmaAllocator::Release(info);
+    dmaBufs_.erase(it);
+}
+
+void RKForkNode::CleanupPoolDmaBufs()
+{
+    if (bufferPool_ == nullptr) {
+        CAMERA_LOGE("CleanupPoolDmaBufs bufferPool_ is null, ABORT");
+        return;
+    }
+
+    std::vector<std::shared_ptr<IBuffer>> drained;
+    std::shared_ptr<IBuffer> buffer = nullptr;
+    while ((buffer = bufferPool_->AcquireBuffer(0)) != nullptr) {
+        drained.push_back(buffer);
+    }
+
+    {
+        std::lock_guard<std::mutex> l(dmaLock_);
+        for (auto& kv : dmaBufs_) {
+            IBuffer* buf = kv.first;
+            DmaInfo& info = kv.second;
+            if (buf == nullptr || info.addr == nullptr) {
+                continue;
+            }
+            if (buf->GetVirAddress() == info.addr) {
+                buf->SetVirAddress(buf->GetSuffaceBufferAddr());
+                DmaAllocator::Release(info);
+            } else {
+                if (info.fd >= 0) {
+                    close(info.fd);
+                }
+            }
+        }
+        dmaBufs_.clear();
+    }
+    for (auto& b : drained) {
+        bufferPool_->ReturnBuffer(b);
+    }
 }
 
 REGISTERNODE(RKForkNode, {"rk_fork"})
