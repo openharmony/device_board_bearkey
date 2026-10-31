@@ -20,6 +20,7 @@
 #include "RgaApi.h"
 #include "rk_mpi.h"
 #include "mutex"
+#include "dma_allocator.h"
 namespace OHOS::Camera {
 using namespace std;
 static uint32_t ConvertOhosFormat2RkFormat(uint32_t format)
@@ -77,12 +78,12 @@ static bool g_checkIfNeedDoTransform(std::shared_ptr<IBuffer>& buffer)
 
 static void TransformToVirAddress(std::shared_ptr<IBuffer>& buffer, int32_t srcRkFmt, int32_t dstRkFmt)
 {
-    auto [tmpBuffer, dmaFd] = buffer->AllocateDmaBuffer(buffer->GetSize());
-    if (tmpBuffer == nullptr) {
+    DmaInfo info = DmaAllocator::Alloc(buffer->GetSize());
+    if (info.addr == nullptr) {
         CAMERA_LOGE("TransformToVirAddress malloc tmpBuffer fail");
         return;
     }
-    memcpy_s(tmpBuffer, buffer->GetSize(), buffer->GetVirAddress(), buffer->GetSize());
+    memcpy_s(info.addr, buffer->GetSize(), buffer->GetVirAddress(), buffer->GetSize());
 
     RockchipRga rkRga;
     rga_info_t src = {};
@@ -90,7 +91,7 @@ static void TransformToVirAddress(std::shared_ptr<IBuffer>& buffer, int32_t srcR
 
     src.mmuFlag = 1;
     src.rotation = 0;
-    src.virAddr = tmpBuffer;
+    src.virAddr = info.addr;
     src.fd = -1;
 
     dst.mmuFlag = 1;
@@ -104,8 +105,7 @@ static void TransformToVirAddress(std::shared_ptr<IBuffer>& buffer, int32_t srcR
 
     rkRga.RkRgaBlit(&src, &dst, NULL);
     rkRga.RkRgaFlush();
-    munmap(tmpBuffer, buffer->GetSize());
-    close(dmaFd);
+    DmaAllocator::Release(info);
     buffer->SetIsValidDataInSurfaceBuffer(false);
 }
 static void TransformToFd(std::shared_ptr<IBuffer>& buffer, int32_t srcRkFmt, int32_t dstRkFmt)
