@@ -50,8 +50,8 @@ RetCode RKCodecNode::Stop(const int32_t streamId)
     std::unique_lock<std::mutex> l(halMpp);
 
     if (halCtx_ != nullptr) {
-        CAMERA_LOGI("RKCodecNode::Stop hal_mpp_ctx_delete\n");
-        hal_mpp_ctx_delete(halCtx_);
+        CAMERA_LOGI("RKCodecNode::Stop HalMppCtxDelete\n");
+        HalMppCtxDelete(halCtx_);
         halCtx_ = nullptr;
         mppStatus_ = 0;
     }
@@ -361,7 +361,7 @@ void RKCodecNode::Yuv420ToH264(std::shared_ptr<IBuffer>& buffer)
     ret = hal_mpp_encode(halCtx_, buffer->GetFileDescriptor(), (unsigned char *)buffer->GetVirAddress(), &bufSize);
     if (mppStatus_ < minIFrameBegin) {
         mppStatus_++;
-        hal_mpp_ctx_delete(halCtx_);
+        HalMppCtxDelete(halCtx_);
         halCtx_ = nullptr;
     }
     
@@ -422,8 +422,8 @@ RetCode RKCodecNode::CancelCapture(const int32_t streamId)
     CAMERA_LOGI("RKCodecNode::CancelCapture streamid = %{public}d", streamId);
     std::unique_lock<std::mutex> l(halMpp);
     if (halCtx_ != nullptr) {
-        CAMERA_LOGI("RKCodecNode::Stop hal_mpp_ctx_delete\n");
-        hal_mpp_ctx_delete(halCtx_);
+        CAMERA_LOGI("RKCodecNode::Stop HalMppCtxDelete\n");
+        HalMppCtxDelete(halCtx_);
         halCtx_ = nullptr;
         mppStatus_ = 0;
     }
