@@ -53,7 +53,7 @@ Table 2: Interface Specification Description of Bearkey BQ3588HM Development Kit
 | G-sensor | 1x G-sensor |
 | Buzzer | 1xBuzzer |
 | Combo + LAN | LAN 1 / SFP + LAN 2 |
-| Cellular Data | 1x M.2 socket, supporting 4G/5G modules |
+| Cellular Data | 1x M.2 socket, supporting external 4G/5G modules |
 | Wireless Network | Supporting WIFI6 5GHz/2.4GHz, 2 antennas |
 | Bluetooth | BT5.0 |
 | NearLink | Supporting SLE1.0 protocol |
