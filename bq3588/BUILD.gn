@@ -24,5 +24,6 @@ group("bq3588_group") {
     "ws73e:ws73e_driver",
     "camera/vdi_impl/v4l2:camera_board_vdi_impl",
     "ril:ril_quectel",
+    "location:vendorGnssAdapter",
   ]
 }
