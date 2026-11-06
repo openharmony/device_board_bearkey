@@ -53,7 +53,7 @@ Rockchip RK3588集成四核Cortex-A76和四核Cortex-A55核心，主频高达2.4
 | G-sensor                         | 1x G-sensor                                                                                                                         |
 | 蜂鸣器                           | 1x蜂鸣器                                                                                                                            |
 | Combo + LAN                      | LAN 1 / SFP + LAN 2                                                                                                                 |
-| 蜂窝数据                         | 1xM.2座子，可支持4G/5G模组                                                                                                          |
+| 蜂窝数据                         | 1xM.2座子，可支持外挂4G/5G模组                                                                                                        |
 | 无线网络                         | 支持WIFI6 5GHz/2.4GHz, 2天线                                                                                                        |
 | 蓝牙                             | BT5.0                                                                                                                               |
 | 星闪                             | 支持SLE1.0协议                                                                                                                      |
